@@ -1,0 +1,32 @@
+:root {
+  --bg: #0a0b0d;
+  --surface: #131519;
+  --text: #f5f3ef;
+  --text2: #a4a9ae;
+  --text3: #7a8086;
+  --accent: #7fe7dc;
+  --rule: rgba(255, 255, 255, 0.1);
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text2);
+  font: 400 17px/1.6 'Familjen Grotesk', system-ui, sans-serif;
+}
+main { max-width: 680px; margin: 0 auto; padding: 40px 20px 80px; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+.brand { font: 800 22px/1 'Schibsted Grotesk', system-ui, sans-serif; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
+h1, h2 { font-family: 'Schibsted Grotesk', system-ui, sans-serif; color: var(--text); letter-spacing: -0.02em; }
+h1 { font-weight: 800; font-size: clamp(38px, 8vw, 56px); line-height: 1.05; margin: 56px 0 12px; }
+h2 { font-weight: 700; font-size: 22px; line-height: 1.25; margin: 40px 0 8px; }
+p, li { max-width: 64ch; }
+strong { color: var(--text); font-weight: 600; }
+ul { padding-left: 20px; }
+li { margin: 6px 0; }
+.meta { color: var(--text3); font-size: 15px; }
+.lede { font-size: 20px; color: var(--text2); }
+footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: 20px; font-size: 15px; }
+footer a { color: var(--text2); }
