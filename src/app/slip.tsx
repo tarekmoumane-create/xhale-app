@@ -20,7 +20,7 @@ const TRIGGERS = [
   },
   { id: 'friends', label: 'Friends', ifs: 'friends are using', then: 'tell one of them I’m quitting and step away for a minute.' },
   { id: 'bored', label: 'Boredom', ifs: 'I’m bored at home', then: 'open SOS first and ride out the wave.' },
-  { id: 'drinks', label: 'Drinking', ifs: 'I’ve had a drink', then: 'keep my hands busy and check in with Coach.' },
+  { id: 'drinks', label: 'Drinking', ifs: 'I’ve had a drink', then: 'keep my hands busy and text a friend.' },
   { id: 'food', label: 'After a meal', ifs: 'I finish a meal', then: 'get up and brush my teeth straight away.' },
   { id: 'other', label: 'Something else', ifs: 'this happens again', then: 'hit SOS before I reach for it.' },
 ];
@@ -52,9 +52,7 @@ export default function Slip() {
     <Screen footer={<Button title={t ? 'Save my new plan' : 'Back on track'} onPress={save} />}>
       <Enter i={0} style={{ gap: 10, paddingTop: 20 }}>
         <Eyebrow style={{ color: Colors.accent }}>It happens</Eyebrow>
-        <Title>
-          A slip isn’t a relapse.
-        </Title>
+        <Title>A slip isn’t a relapse.</Title>
         <Body>Most people who quit for good slipped along the way. The next hour matters far more than the last one.</Body>
       </Enter>
 

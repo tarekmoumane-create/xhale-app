@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Linking, StyleSheet, Text, View } from 'react-native';
 
 import { Button, Caption, Card, Enter, Eyebrow, Icon, IconButton, LinkButton, Screen, Tap, Title } from '@/components/ui';
+import { COACH_ENABLED } from '@/constants/features';
 import { Colors, Fonts, SubstanceMeta } from '@/constants/theme';
 import { track } from '@/lib/analytics';
 import { unlock } from '@/lib/finish';
@@ -90,9 +91,7 @@ export default function Paywall() {
       }>
       <Enter i={0} style={{ gap: 10 }}>
         <Eyebrow style={{ color: Colors.accent }}>Your plan is ready</Eyebrow>
-        <Title>
-          Your way out starts today.
-        </Title>
+        <Title>Your way out starts today.</Title>
         {payoff ? (
           <Caption style={{ fontSize: 14, lineHeight: 20, color: Colors.text2 }}>
             {money(perDay * 365)} a year on your habit, or {prices.annual} for Exhale. That’s less than{' '}
@@ -116,7 +115,9 @@ export default function Paywall() {
             );
           })}
           <Row icon="waveform.path.ecg" android="monitor_heart" color={Colors.accent} text="Craving SOS, any time, day or night" />
-          <Row icon="bubble.left.and.bubble.right.fill" android="forum" color={Colors.accent} text="A coach who knows your plan" />
+          {COACH_ENABLED ? (
+            <Row icon="bubble.left.and.bubble.right.fill" android="forum" color={Colors.accent} text="A coach who knows your plan" />
+          ) : null}
           {why ? (
             <Row icon="heart.fill" android="favorite" color={Colors.danger} text={why.charAt(0).toUpperCase() + why.slice(1)} />
           ) : null}

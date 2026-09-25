@@ -36,9 +36,7 @@ export default function Pledge() {
       }>
       <Enter i={0} style={{ gap: 10 }}>
         <Eyebrow style={{ color: Colors.accent }}>You’re in. One last thing.</Eyebrow>
-        <Title>
-          Make a promise to yourself.
-        </Title>
+        <Title>Make a promise to yourself.</Title>
       </Enter>
 
       <Enter i={1}>

@@ -11,6 +11,7 @@ import { BreathOrb } from '@/components/breath';
 import { Smoke } from '@/components/smoke';
 import { Caption, Eyebrow, Icon, IconButton, LinkButton, Tap } from '@/components/ui';
 import { CravingWave } from '@/components/visuals';
+import { COACH_ENABLED } from '@/constants/features';
 import { Colors, Fonts } from '@/constants/theme';
 import { track } from '@/lib/analytics';
 import { lungDays, lungsSince, lungUpdate, pickFact } from '@/lib/lungs';
@@ -193,7 +194,11 @@ export default function SOS() {
               <Text style={styles.source}>Source: {fact.source}</Text>
               <View style={styles.panelFoot}>
                 <Text style={styles.saved}>
-                  {me.saved >= 1 ? `${money(me.saved)} saved so far` : me.why ? `You’re doing this ${me.why}.` : 'Every one you skip counts.'}
+                  {me.saved >= 1
+                    ? `${money(me.saved)} saved so far`
+                    : me.why
+                      ? `You’re doing this ${me.why}.`
+                      : 'Every one you skip counts.'}
                 </Text>
                 <Tap accessibilityRole="button" onPress={again} style={styles.again}>
                   <Icon name="arrow.counterclockwise" android="replay" size={12} color={Colors.text} />
@@ -240,7 +245,9 @@ export default function SOS() {
                   Linking.openURL(`sms:&body=${encodeURIComponent('Having a rough craving right now. Could you talk for 5 minutes?')}`)
                 }
               />
-              <Action icon="bubble.left.fill" android="chat" label="Talk to Coach" onPress={() => router.dismissTo('/coach')} />
+              {COACH_ENABLED ? (
+                <Action icon="bubble.left.fill" android="chat" label="Talk to Coach" onPress={() => router.dismissTo('/coach')} />
+              ) : null}
               <Action icon="list.bullet" android="list" label="My plans" onPress={() => router.dismissTo('/plan')} />
             </Animated.View>
 

@@ -1,5 +1,6 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 
+import { COACH_ENABLED } from '@/constants/features';
 import { Colors } from '@/constants/theme';
 
 export default function TabsLayout() {
@@ -16,7 +17,7 @@ export default function TabsLayout() {
         <NativeTabs.Trigger.Icon sf="arrow.left.arrow.right" md="swap_horiz" />
         <NativeTabs.Trigger.Label>Plan</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="coach">
+      <NativeTabs.Trigger name="coach" hidden={!COACH_ENABLED}>
         <NativeTabs.Trigger.Icon sf={{ default: 'bubble.left', selected: 'bubble.left.fill' }} md="chat" />
         <NativeTabs.Trigger.Label>Coach</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>

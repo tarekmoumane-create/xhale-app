@@ -75,10 +75,7 @@ export async function scheduleNudges(state: State, now = Date.now()) {
         kind === 'money'
           ? {
               title: `You’ve saved ${money(savedThen)}`,
-              body:
-                lungDay === null
-                  ? `That’s ${money(perDay)} a day you’re keeping.`
-                  : `And your lungs are on day ${lungDay} of healing.`,
+              body: lungDay === null ? `That’s ${money(perDay)} a day you’re keeping.` : `And your lungs are on day ${lungDay} of healing.`,
               data: { url: '/' },
             }
           : kind === 'why'

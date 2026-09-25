@@ -5,6 +5,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Button, Caption, Card, Enter, Eyebrow, Icon, Screen, Tap, Title } from '@/components/ui';
 import { LungCard } from '@/components/lungs';
 import { LiveTimer, Rings, type Ring } from '@/components/visuals';
+import { COACH_ENABLED } from '@/constants/features';
 import { Colors, Fonts, SubstanceMeta, type Substance } from '@/constants/theme';
 import { useNow } from '@/hooks/use-now';
 import { cleanDays, dailyLimit, dayIndex, MILESTONES, money, moneySaved, streakStart, usedToday } from '@/lib/plan';
@@ -12,7 +13,7 @@ import { setState, useStore, type State } from '@/lib/store';
 
 const DAY = 86_400_000;
 
-const STEPS = [
+const ALL_STEPS = [
   {
     title: 'Plan for your hardest hour',
     body: 'Check your if-then plans against today.',
@@ -44,6 +45,7 @@ const STEPS = [
     icon: 'lungs.fill',
   },
 ];
+const STEPS = ALL_STEPS.filter((s) => COACH_ENABLED || s.href !== '/coach');
 
 function greeting(now: number) {
   const h = new Date(now).getHours();

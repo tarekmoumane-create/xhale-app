@@ -22,9 +22,7 @@ export default function Welcome() {
           <Text style={styles.hero} accessibilityRole="header">
             Breathe out.{'\n'}For good.
           </Text>
-          <Text style={styles.lede}>
-            Quit smoking, vaping or weed. No lectures. No shame.
-          </Text>
+          <Text style={styles.lede}>Quit smoking, vaping or weed. No lectures. No shame.</Text>
         </View>
 
         <Smoke

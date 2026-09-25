@@ -69,9 +69,7 @@ export default function Notify() {
               <Text style={styles.time}>{fmtHour(hour)}</Text>
             </View>
             <Text style={styles.notifTitle}>You’ve saved {money(weekly)}</Text>
-            <Text style={styles.notifBody}>
-              And your lungs are on day 7 of healing.
-            </Text>
+            <Text style={styles.notifBody}>And your lungs are on day 7 of healing.</Text>
           </View>
         </View>
       </Enter>

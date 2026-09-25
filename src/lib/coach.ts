@@ -64,7 +64,8 @@ export async function askCoach(messages: ChatMessage[], state: State): Promise<s
   } catch {
     return offlineReply(last, state);
   }
-  if (res.status === 429) return 'You’ve reached today’s Coach limit. It resets tomorrow. SOS and your plans are still here if a craving hits.';
+  if (res.status === 429)
+    return 'You’ve reached today’s Coach limit. It resets tomorrow. SOS and your plans are still here if a craving hits.';
   if (!res.ok) return offlineReply(last, state);
   const data = (await res.json()) as { reply: string };
   return data.reply;

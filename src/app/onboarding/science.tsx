@@ -25,9 +25,7 @@ export default function Science() {
       header={<StepHeader progress={0.66} />}
       footer={<Button title="Build my plan" onPress={() => router.push('/onboarding/habits')} />}>
       <Enter i={0} style={{ gap: 10 }}>
-        <Title>
-          It was never a willpower problem.
-        </Title>
+        <Title>It was never a willpower problem.</Title>
         <Body>Three skills, one day at a time.</Body>
       </Enter>
       <View style={{ gap: 0 }}>
@@ -45,9 +43,7 @@ export default function Science() {
         ))}
       </View>
       <Enter i={5}>
-        <Caption>
-          Built on ACT and CBT, the best-studied approaches to quitting.
-        </Caption>
+        <Caption>Built on ACT and CBT, the best-studied approaches to quitting.</Caption>
       </Enter>
     </Screen>
   );

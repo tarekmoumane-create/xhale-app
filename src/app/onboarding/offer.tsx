@@ -60,9 +60,7 @@ export default function Offer() {
       </View>
       <Enter i={0} style={{ gap: 12 }}>
         <Eyebrow style={{ color: Colors.accent }}>A one-time offer</Eyebrow>
-        <Title style={{ fontSize: 36, lineHeight: 40 }}>
-          Your first year for {price}.
-        </Title>
+        <Title style={{ fontSize: 36, lineHeight: 40 }}>Your first year for {price}.</Title>
         <Body>This price won’t come back.</Body>
       </Enter>
       <Enter i={1}>

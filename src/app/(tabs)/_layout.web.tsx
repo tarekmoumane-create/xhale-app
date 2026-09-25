@@ -2,6 +2,7 @@
 import { Tabs } from 'expo-router';
 
 import { Icon } from '@/components/ui';
+import { COACH_ENABLED } from '@/constants/features';
 import { Colors, Fonts } from '@/constants/theme';
 
 const TABS = [
@@ -26,7 +27,11 @@ export default function TabsLayout() {
         <Tabs.Screen
           key={t.name}
           name={t.name}
-          options={{ title: t.title, tabBarIcon: ({ color }) => <Icon name={t.icon} android={t.icon} size={22} color={String(color)} /> }}
+          options={{
+            href: t.name === 'coach' && !COACH_ENABLED ? null : undefined,
+            title: t.title,
+            tabBarIcon: ({ color }) => <Icon name={t.icon} android={t.icon} size={22} color={String(color)} />,
+          }}
         />
       ))}
     </Tabs>

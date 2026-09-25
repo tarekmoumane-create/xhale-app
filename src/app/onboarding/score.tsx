@@ -45,17 +45,7 @@ export default function Score() {
       footer={<Button title="Continue" onPress={() => router.push('/onboarding/symptoms')} />}>
       <Enter i={0} style={{ gap: 10 }}>
         <Eyebrow>Your results</Eyebrow>
-        <Title>
-          {heavy ? (
-            <>
-              Here’s the honest picture.
-            </>
-          ) : (
-            <>
-              You’re catching this early.
-            </>
-          )}
-        </Title>
+        <Title>{heavy ? <>Here’s the honest picture.</> : <>You’re catching this early.</>}</Title>
       </Enter>
 
       {scores.map((s, i) => (
@@ -69,7 +59,6 @@ export default function Score() {
           <Card>
             <Eyebrow>You’re doing this</Eyebrow>
             <Text style={styles.why}>{why.charAt(0).toUpperCase() + why.slice(1)}.</Text>
-            
           </Card>
         </Enter>
       ) : null}
@@ -78,9 +67,7 @@ export default function Score() {
         <Enter i={4}>
           <Card tint={Colors.accentSoft} style={{ flexDirection: 'row', gap: 12 }}>
             <Icon name="cross.case.fill" android="medical_services" color={Colors.accent} />
-            <Small style={{ flex: 1, color: Colors.text }}>
-              At this level, patches or gum alongside Exhale give you the best odds.
-            </Small>
+            <Small style={{ flex: 1, color: Colors.text }}>At this level, patches or gum alongside Exhale give you the best odds.</Small>
           </Card>
         </Enter>
       ) : null}

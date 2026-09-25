@@ -100,9 +100,7 @@ export default function PlanScreen() {
         </Card>
       </Enter>
       <Enter i={3}>
-        <Caption>
-          Not sure? Tapering suits heavy nicotine use. You can switch anytime.
-        </Caption>
+        <Caption>Not sure? Tapering suits heavy nicotine use. You can switch anytime.</Caption>
       </Enter>
     </Screen>
   );

@@ -183,10 +183,7 @@ export function Smoke({
   const goneCount = useRef(0);
   const firedRef = useRef(false);
 
-  const puffs = useMemo(
-    () => (size.w ? layout(size.w, size.h, count, 7 + resetKey * 131) : []),
-    [size.w, size.h, count, resetKey],
-  );
+  const puffs = useMemo(() => (size.w ? layout(size.w, size.h, count, 7 + resetKey * 131) : []), [size.w, size.h, count, resetKey]);
 
   useEffect(() => {
     goneCount.current = 0;

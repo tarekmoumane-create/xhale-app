@@ -63,7 +63,9 @@ function lungView(state: State, now: number) {
   const since = lungsSince(state, now);
   const vapeOnly = state.substances.length === 1 && state.substances[0] === 'vape';
   if (since === null) {
-    const starts = state.startedAt ? state.substances.map((s) => (state.modes[s] === 'cold' ? state.startedAt! : taperEnd(state.startedAt!, s))) : [];
+    const starts = state.startedAt
+      ? state.substances.map((s) => (state.modes[s] === 'cold' ? state.startedAt! : taperEnd(state.startedAt!, s)))
+      : [];
     const from = starts.length ? Math.max(...starts) : null;
     return { tapering: true as const, from, clarity: 0.08, vapeOnly };
   }

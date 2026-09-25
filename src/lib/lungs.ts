@@ -237,7 +237,10 @@ export function lungDays(since: number, now = Date.now()) {
 }
 
 export function lungUpdate(day: number, vapeOnly = false) {
-  const i = Math.max(0, LUNG_UPDATES.findLastIndex((u) => u.day <= day));
+  const i = Math.max(
+    0,
+    LUNG_UPDATES.findLastIndex((u) => u.day <= day),
+  );
   const pick = (u: LungUpdate): LungUpdate => (vapeOnly && u.vape ? { ...u, body: u.vape } : u);
   const next = LUNG_UPDATES[i + 1];
   return { current: pick(LUNG_UPDATES[i]), next: next ? pick(next) : null };
