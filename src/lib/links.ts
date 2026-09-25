@@ -1,3 +1,2 @@
-// Replace with your real pages before submitting to the App Store (required for subscriptions).
-export const TERMS_URL = 'https://example.com/terms';
-export const PRIVACY_URL = 'https://example.com/privacy';
+export const TERMS_URL = 'https://xhale.vercel.app/terms';
+export const PRIVACY_URL = 'https://xhale.vercel.app/privacy';
