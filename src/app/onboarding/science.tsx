@@ -11,7 +11,7 @@ const SKILLS = [
   },
   {
     title: 'Get ahead of your triggers',
-    body: 'Every trigger gets an if-then plan.',
+    body: 'Every trigger gets a go-to move for when it hits.',
   },
   {
     title: 'Slip without spiralling',

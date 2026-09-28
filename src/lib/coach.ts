@@ -2,6 +2,7 @@ import { dayIndex } from '@/lib/plan';
 import { appUserId } from '@/lib/purchases';
 import type { ChatMessage, State } from '@/lib/store';
 import { quoteWhy } from '@/lib/why';
+import { toolById, triggerLabel } from '@/lib/tools';
 
 const COACH_URL = process.env.EXPO_PUBLIC_COACH_URL;
 
@@ -16,7 +17,7 @@ export function looksLikeCrisis(text: string) {
 function offlineReply(text: string, state: State) {
   const t = text.toLowerCase();
   const why = state.why ? ` You told us why you're doing this: ${quoteWhy(state.why)}. That still matters right now.` : '';
-  const plan = state.plans[0];
+  const plan = state.triggerPlans[0];
   if (/slip|relapse|gave in|smoked|vaped|used again/.test(t)) {
     return 'Thank you for telling me. A slip isn\u2019t a relapse, and it doesn\u2019t erase the days you\u2019ve put in. What was happening right before it? Log it on the slip screen and we\u2019ll turn it into a plan for next time.';
   }
@@ -31,9 +32,7 @@ function offlineReply(text: string, state: State) {
   }
   return (
     'That pull is real, and it will pass. Most cravings peak and fade within five minutes. Don\u2019t fight it, just notice it and wait it out.' +
-    (plan
-      ? ` Your plan for this: if ${plan.ifs}, ${plan.then.charAt(0).toLowerCase() + plan.then.slice(1)}`
-      : ' Open SOS and ride the wave with me.') +
+    (plan ? ` One thing from your plan: ${toolById(plan.tool).title.toLowerCase()}.` : ' Open SOS and ride the wave with me.') +
     why
   );
 }
@@ -57,7 +56,7 @@ export async function askCoach(messages: ChatMessage[], state: State): Promise<s
           day: state.startedAt ? dayIndex(state.startedAt) + 1 : undefined,
           why: state.why,
           symptoms: state.symptoms,
-          plans: state.plans.map(({ ifs, then }) => ({ ifs, then })),
+          plans: state.triggerPlans.map((p) => ({ ifs: triggerLabel(p.trigger), then: toolById(p.tool).title })),
           localTime: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
         },
       }),

@@ -3,6 +3,7 @@ import { useSyncExternalStore } from 'react';
 import type { Substance } from '@/constants/theme';
 import { kv } from '@/lib/kv';
 import type { Answers } from '@/lib/quiz';
+import type { TriggerPlan } from '@/lib/tools';
 
 export type QuitMode = 'taper' | 'cold';
 
@@ -20,7 +21,6 @@ export type Habits = {
 export type UseLog = { t: number; s: Substance; n: number };
 export type Slip = { t: number; s: Substance; trigger: string };
 export type Craving = { t: number };
-export type IfThenPlan = { id: string; ifs: string; then: string; s?: Substance };
 export type ChatMessage = { role: 'user' | 'assistant'; text: string };
 
 export type State = {
@@ -41,8 +41,10 @@ export type State = {
   logs: UseLog[];
   slips: Slip[];
   cravings: Craving[];
-  plans: IfThenPlan[];
-  planUsed: Record<string, string>;
+  /** Their craving plan: for each trigger, the tool they'll use. */
+  triggerPlans: TriggerPlan[];
+  /** Tool id -> the dayKey it was last used. */
+  toolsUsed: Record<string, string>;
   coach: ChatMessage[];
   /** Anonymous ID for this install, used for Coach rate limits until RevenueCat provides one. */
   deviceId: string;
@@ -76,8 +78,8 @@ export const initialState: State = {
   logs: [],
   slips: [],
   cravings: [],
-  plans: [],
-  planUsed: {},
+  triggerPlans: [],
+  toolsUsed: {},
   coach: [],
   deviceId: '',
 };

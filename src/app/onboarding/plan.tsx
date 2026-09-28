@@ -33,7 +33,7 @@ export default function PlanScreen() {
   return (
     <Screen
       header={<StepHeader progress={0.8} />}
-      footer={<Button title="Lock in my plan" onPress={() => router.push('/onboarding/paywall')} />}>
+      footer={<Button title="Lock in my plan" onPress={() => router.push('/onboarding/admit')} />}>
       <Enter i={0} style={{ gap: 6 }}>
         <Eyebrow>Every year, this costs you</Eyebrow>
         <Text style={styles.big} accessibilityLabel={money(cost.total)}>

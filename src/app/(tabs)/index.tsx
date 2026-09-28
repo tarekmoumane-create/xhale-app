@@ -2,7 +2,8 @@ import * as Haptics from 'expo-haptics';
 import { Link, router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Button, Caption, Card, Enter, Eyebrow, Icon, Screen, Tap, Title } from '@/components/ui';
+import { CravingButton } from '@/components/craving-button';
+import { Caption, Card, Enter, Eyebrow, Icon, Screen, Tap, Title } from '@/components/ui';
 import { LungCard } from '@/components/lungs';
 import { LiveTimer, Rings, type Ring } from '@/components/visuals';
 import { COACH_ENABLED } from '@/constants/features';
@@ -16,7 +17,7 @@ const DAY = 86_400_000;
 const ALL_STEPS = [
   {
     title: 'Plan for your hardest hour',
-    body: 'Check your if-then plans against today.',
+    body: 'Check your plan covers the moments you’ll face today.',
     href: '/plan' as const,
     icon: 'arrow.triangle.branch',
   },
@@ -113,104 +114,103 @@ export default function Today() {
   };
 
   return (
-    <Screen edges={['top']} contentStyle={{ paddingBottom: 120 }}>
-      <Enter i={0} style={{ gap: 4, paddingTop: 6 }}>
-        <Eyebrow>{new Date(now).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</Eyebrow>
-        <Title>{greeting(now)}</Title>
-      </Enter>
+    <View style={{ flex: 1 }}>
+      <Screen edges={['top']} contentStyle={{ paddingBottom: 150 }}>
+        <Enter i={0} style={{ gap: 4, paddingTop: 6 }}>
+          <Eyebrow>{new Date(now).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</Eyebrow>
+          <Title>{greeting(now)}</Title>
+        </Enter>
 
-      <Enter i={1}>
-        <Tap
-          accessibilityRole="button"
-          onPress={() => router.push('/pledge-today')}
-          scaleTo={0.985}
-          style={[styles.pledge, pledgedToday && styles.pledgeDone]}>
-          <Icon
-            name={pledgedToday ? 'checkmark.seal.fill' : 'hand.raised.fill'}
-            android={pledgedToday ? 'verified' : 'front_hand'}
-            size={18}
-            color={pledgedToday ? Colors.accent : Colors.onAccent}
-          />
-          <Text style={[styles.pledgeText, pledgedToday && { color: Colors.text }]}>
-            {pledgedToday ? 'Pledged for today' : 'Make today’s pledge'}
-          </Text>
-          {!pledgedToday ? <Icon name="chevron.right" android="chevron_right" size={14} color={Colors.onAccent} /> : null}
-        </Tap>
-      </Enter>
-
-      <Enter i={1} style={styles.ringWrap}>
-        <Rings rings={rows.map((r) => r.ring)}>
-          <LiveTimer since={timerSince} label={timerLabel} />
-        </Rings>
-      </Enter>
-
-      <Enter i={2} style={styles.stats}>
-        <Stat value={money(moneySaved(state, now))} label="saved" />
-        <View style={styles.statDivider} />
-        <Stat value={String(state.cravings.length)} label="cravings faced" />
-        <View style={styles.statDivider} />
-        <Stat value={String(bestClean)} label="clean days" />
-      </Enter>
-
-      <View style={{ gap: 10 }}>
-        {rows.map((r, i) => {
-          const m = SubstanceMeta[r.s];
-          return (
-            <Enter key={r.s} i={3 + i}>
-              <Card style={styles.row}>
-                <View style={[styles.rowIcon, { backgroundColor: m.soft }]}>
-                  <Icon name={m.icon} android={m.androidIcon} size={18} color={m.color} />
-                </View>
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Text style={[styles.rowTitle, r.over && { color: Colors.danger }]}>{r.title}</Text>
-                  <Caption style={{ color: Colors.text2 }}>{r.status}</Caption>
-                </View>
-                {r.tapering ? (
-                  <Tap
-                    accessibilityRole="button"
-                    accessibilityLabel={`Log ${LOG_STEP[r.s]} ${LOG_STEP[r.s] === 1 ? m.unit : m.units}`}
-                    onPress={() => log(r.s)}
-                    style={styles.pill}>
-                    <Text style={styles.pillText}>+{LOG_STEP[r.s]}</Text>
-                  </Tap>
-                ) : (
-                  <Tap
-                    accessibilityRole="button"
-                    onPress={() => router.push({ pathname: '/slip', params: { s: r.s } })}
-                    style={styles.pill}>
-                    <Text style={styles.pillText}>Slipped</Text>
-                  </Tap>
-                )}
-              </Card>
-            </Enter>
-          );
-        })}
-      </View>
-
-      <Enter i={6}>
-        <LungCard state={state} now={now} />
-      </Enter>
-
-      <Enter i={7}>
-        <Link href={step.href} asChild>
-          <Tap style={styles.step} scaleTo={0.985}>
-            <View style={styles.stepIcon}>
-              <Icon name={step.icon} android="flag" size={18} color={Colors.accent} />
-            </View>
-            <View style={{ flex: 1, gap: 3 }}>
-              <Eyebrow style={{ color: Colors.accent }}>Today’s step, 2 min</Eyebrow>
-              <Text style={styles.stepTitle}>{step.title}</Text>
-              <Caption style={{ color: Colors.text2 }}>{step.body}</Caption>
-            </View>
-            <Icon name="chevron.right" android="chevron_right" size={14} color={Colors.text3} />
+        <Enter i={1}>
+          <Tap
+            accessibilityRole="button"
+            onPress={() => router.push('/pledge-today')}
+            scaleTo={0.985}
+            style={[styles.pledge, pledgedToday && styles.pledgeDone]}>
+            <Icon
+              name={pledgedToday ? 'checkmark.seal.fill' : 'hand.raised.fill'}
+              android={pledgedToday ? 'verified' : 'front_hand'}
+              size={18}
+              color={pledgedToday ? Colors.accent : Colors.onAccent}
+            />
+            <Text style={[styles.pledgeText, pledgedToday && { color: Colors.text }]}>
+              {pledgedToday ? 'Pledged for today' : 'Make today’s pledge'}
+            </Text>
+            {!pledgedToday ? <Icon name="chevron.right" android="chevron_right" size={14} color={Colors.onAccent} /> : null}
           </Tap>
-        </Link>
-      </Enter>
+        </Enter>
 
-      <Enter i={8}>
-        <Button title="I’m having a craving" icon="wind" tone="accent" onPress={() => router.push('/sos')} />
-      </Enter>
-    </Screen>
+        <Enter i={1} style={styles.ringWrap}>
+          <Rings rings={rows.map((r) => r.ring)}>
+            <LiveTimer since={timerSince} label={timerLabel} />
+          </Rings>
+        </Enter>
+
+        <Enter i={2} style={styles.stats}>
+          <Stat value={money(moneySaved(state, now))} label="saved" />
+          <View style={styles.statDivider} />
+          <Stat value={String(state.cravings.length)} label="cravings faced" />
+          <View style={styles.statDivider} />
+          <Stat value={String(bestClean)} label="clean days" />
+        </Enter>
+
+        <View style={{ gap: 10 }}>
+          {rows.map((r, i) => {
+            const m = SubstanceMeta[r.s];
+            return (
+              <Enter key={r.s} i={3 + i}>
+                <Card style={styles.row}>
+                  <View style={[styles.rowIcon, { backgroundColor: m.soft }]}>
+                    <Icon name={m.icon} android={m.androidIcon} size={18} color={m.color} />
+                  </View>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={[styles.rowTitle, r.over && { color: Colors.danger }]}>{r.title}</Text>
+                    <Caption style={{ color: Colors.text2 }}>{r.status}</Caption>
+                  </View>
+                  {r.tapering ? (
+                    <Tap
+                      accessibilityRole="button"
+                      accessibilityLabel={`Log ${LOG_STEP[r.s]} ${LOG_STEP[r.s] === 1 ? m.unit : m.units}`}
+                      onPress={() => log(r.s)}
+                      style={styles.pill}>
+                      <Text style={styles.pillText}>+{LOG_STEP[r.s]}</Text>
+                    </Tap>
+                  ) : (
+                    <Tap
+                      accessibilityRole="button"
+                      onPress={() => router.push({ pathname: '/slip', params: { s: r.s } })}
+                      style={styles.pill}>
+                      <Text style={styles.pillText}>Slipped</Text>
+                    </Tap>
+                  )}
+                </Card>
+              </Enter>
+            );
+          })}
+        </View>
+
+        <Enter i={6}>
+          <LungCard state={state} now={now} />
+        </Enter>
+
+        <Enter i={7}>
+          <Link href={step.href} asChild>
+            <Tap style={styles.step} scaleTo={0.985}>
+              <View style={styles.stepIcon}>
+                <Icon name={step.icon} android="flag" size={18} color={Colors.accent} />
+              </View>
+              <View style={{ flex: 1, gap: 3 }}>
+                <Eyebrow style={{ color: Colors.accent }}>Today’s step, 2 min</Eyebrow>
+                <Text style={styles.stepTitle}>{step.title}</Text>
+                <Caption style={{ color: Colors.text2 }}>{step.body}</Caption>
+              </View>
+              <Icon name="chevron.right" android="chevron_right" size={14} color={Colors.text3} />
+            </Tap>
+          </Link>
+        </Enter>
+      </Screen>
+      <CravingButton />
+    </View>
   );
 }
 

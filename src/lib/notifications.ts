@@ -41,7 +41,11 @@ function at(base: Date, days: number, hour: number, minute: number) {
 export async function scheduleNudges(state: State, now = Date.now()) {
   const { granted } = await Notifications.getPermissionsAsync();
   if (!granted || !state.startedAt) return;
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  // Only replace our own daily notifications, not a craving timer that's running.
+  const pending = await Notifications.getAllScheduledNotificationsAsync();
+  await Promise.all(
+    pending.filter((n) => n.identifier.startsWith('nudge-')).map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)),
+  );
 
   const since = lungsSince(state, now);
   const vapeOnly = state.substances.length === 1 && state.substances[0] === 'vape';
@@ -65,6 +69,7 @@ export async function scheduleNudges(state: State, now = Date.now()) {
       const lungs = u ? `Your lungs today: ${u.title.toLowerCase()}.` : '';
       jobs.push(
         Notifications.scheduleNotificationAsync({
+          identifier: `nudge-morning-${d}`,
           content: {
             title: 'Make today’s pledge',
             body: [why, lungs].filter(Boolean).join(' ') || 'One tap to commit to today.',
@@ -94,6 +99,7 @@ export async function scheduleNudges(state: State, now = Date.now()) {
               };
       jobs.push(
         Notifications.scheduleNotificationAsync({
+          identifier: `nudge-craving-${d}`,
           content,
           trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: craving },
         }),
@@ -101,4 +107,21 @@ export async function scheduleNudges(state: State, now = Date.now()) {
     }
   }
   await Promise.all(jobs);
+}
+
+/** "Wait 10 minutes" from the craving plan: a check-in when the time is up. Returns false without permission. */
+export async function startDelayTimer(minutes = 10) {
+  const { granted } = await Notifications.getPermissionsAsync();
+  if (!granted && !(await requestNotifications())) return false;
+  await Notifications.cancelScheduledNotificationAsync('craving-timer').catch(() => {});
+  await Notifications.scheduleNotificationAsync({
+    identifier: 'craving-timer',
+    content: {
+      title: `${minutes} minutes are up`,
+      body: 'How’s the craving now? If it’s still there, try another tool from your plan.',
+      data: { url: '/plan' },
+    },
+    trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: minutes * 60 },
+  });
+  return true;
 }
