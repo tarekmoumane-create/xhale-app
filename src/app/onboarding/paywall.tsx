@@ -95,7 +95,7 @@ export default function Paywall() {
         <Title>Your way out starts today.</Title>
         {payoff ? (
           <Caption style={{ fontSize: 14, lineHeight: 20, color: Colors.text2 }}>
-            {money(perDay * 365)} a year on your habit, or {prices.annual} for Exhale. That’s less than{' '}
+            {money(perDay * 365)} a year on your habit, or {prices.annual} for Xhale. That’s less than{' '}
             {payoff === 1 ? '1 day' : `${payoff} days`} of what you spend now.
           </Caption>
         ) : null}

@@ -68,7 +68,7 @@ export default function Score() {
         <Enter i={4}>
           <Card tint={Colors.accentSoft} style={{ flexDirection: 'row', gap: 12 }}>
             <Icon name="cross.case.fill" android="medical_services" color={Colors.accent} />
-            <Small style={{ flex: 1, color: Colors.text }}>At this level, patches or gum alongside Exhale give you the best odds.</Small>
+            <Small style={{ flex: 1, color: Colors.text }}>At this level, patches or gum alongside Xhale give you the best odds.</Small>
           </Card>
         </Enter>
       ) : null}

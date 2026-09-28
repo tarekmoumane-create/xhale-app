@@ -16,7 +16,7 @@ export default function Welcome() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.stage}>
-        <Text style={styles.brand}>exhale</Text>
+        <Text style={styles.brand}>xhale</Text>
 
         <View style={styles.copy}>
           <Text style={styles.hero} accessibilityRole="header">

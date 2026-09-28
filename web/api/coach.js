@@ -1,4 +1,4 @@
-// Coach API for Exhale, deployed as a Vercel function at /api/coach.
+// Coach API for Xhale, deployed as a Vercel function at /api/coach.
 // Keeps the Anthropic API key off the phone.
 //
 // POST /api/coach  { messages: [{ role: 'user' | 'assistant', text }], context: {...} }

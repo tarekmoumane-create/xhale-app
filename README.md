@@ -1,4 +1,4 @@
-# Exhale
+# Xhale
 
 An iOS-first Expo app that helps people quit cigarettes, vaping and weed in any combination. The product spec is in `../PRODUCT.md`.
 

@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Exhale",
+    "name": "Xhale",
     "slug": "exhale",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "exhale",
+    "scheme": "xhale",
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": false,
