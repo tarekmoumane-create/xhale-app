@@ -1,6 +1,7 @@
 import { dayIndex } from '@/lib/plan';
 import { appUserId } from '@/lib/purchases';
 import type { ChatMessage, State } from '@/lib/store';
+import { quoteWhy } from '@/lib/why';
 
 const COACH_URL = process.env.EXPO_PUBLIC_COACH_URL;
 
@@ -14,7 +15,7 @@ export function looksLikeCrisis(text: string) {
 /** Built-in replies used when the Coach server isn't configured or can't be reached. */
 function offlineReply(text: string, state: State) {
   const t = text.toLowerCase();
-  const why = state.why ? ` You told us you're doing this ${state.why}. That still matters right now.` : '';
+  const why = state.why ? ` You told us why you're doing this: ${quoteWhy(state.why)}. That still matters right now.` : '';
   const plan = state.plans[0];
   if (/slip|relapse|gave in|smoked|vaped|used again/.test(t)) {
     return 'Thank you for telling me. A slip isn\u2019t a relapse, and it doesn\u2019t erase the days you\u2019ve put in. What was happening right before it? Log it on the slip screen and we\u2019ll turn it into a plan for next time.';

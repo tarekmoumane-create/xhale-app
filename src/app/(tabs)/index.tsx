@@ -8,7 +8,7 @@ import { LiveTimer, Rings, type Ring } from '@/components/visuals';
 import { COACH_ENABLED } from '@/constants/features';
 import { Colors, Fonts, SubstanceMeta, type Substance } from '@/constants/theme';
 import { useNow } from '@/hooks/use-now';
-import { cleanDays, dailyLimit, dayIndex, MILESTONES, money, moneySaved, streakStart, usedToday } from '@/lib/plan';
+import { cleanDays, dailyLimit, dayIndex, dayKey, MILESTONES, money, moneySaved, streakStart, usedToday } from '@/lib/plan';
 import { setState, useStore, type State } from '@/lib/store';
 
 const DAY = 86_400_000;
@@ -104,6 +104,7 @@ export default function Today() {
   const timerSince = starts.length ? Math.min(...starts) : (state.startedAt ?? now);
   const timerLabel = starts.length ? 'Free for' : 'On your plan for';
   const step = STEPS[dayIndex(state.startedAt ?? now, now) % STEPS.length];
+  const pledgedToday = state.pledges.includes(dayKey(now));
   const bestClean = Math.max(0, ...state.substances.map((s) => cleanDays(state, s, now)));
 
   const log = (s: Substance) => {
@@ -116,6 +117,25 @@ export default function Today() {
       <Enter i={0} style={{ gap: 4, paddingTop: 6 }}>
         <Eyebrow>{new Date(now).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</Eyebrow>
         <Title>{greeting(now)}</Title>
+      </Enter>
+
+      <Enter i={1}>
+        <Tap
+          accessibilityRole="button"
+          onPress={() => router.push('/pledge-today')}
+          scaleTo={0.985}
+          style={[styles.pledge, pledgedToday && styles.pledgeDone]}>
+          <Icon
+            name={pledgedToday ? 'checkmark.seal.fill' : 'hand.raised.fill'}
+            android={pledgedToday ? 'verified' : 'front_hand'}
+            size={18}
+            color={pledgedToday ? Colors.accent : Colors.onAccent}
+          />
+          <Text style={[styles.pledgeText, pledgedToday && { color: Colors.text }]}>
+            {pledgedToday ? 'Pledged for today' : 'Make today’s pledge'}
+          </Text>
+          {!pledgedToday ? <Icon name="chevron.right" android="chevron_right" size={14} color={Colors.onAccent} /> : null}
+        </Tap>
       </Enter>
 
       <Enter i={1} style={styles.ringWrap}>
@@ -204,6 +224,17 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 const styles = StyleSheet.create({
+  pledge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    height: 52,
+    paddingHorizontal: 18,
+    borderRadius: 18,
+    backgroundColor: Colors.accent,
+  },
+  pledgeDone: { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
+  pledgeText: { flex: 1, fontFamily: Fonts.bold, fontSize: 16, color: Colors.onAccent },
   ringWrap: { alignItems: 'center', paddingVertical: 6 },
   stats: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4 },
   statDivider: { width: StyleSheet.hairlineWidth, height: 28, backgroundColor: Colors.borderStrong },

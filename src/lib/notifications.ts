@@ -1,8 +1,9 @@
 import * as Notifications from 'expo-notifications';
 
 import { lungsSince, lungUpdate, pickFact } from '@/lib/lungs';
-import { money, moneySaved, yearlyCost } from '@/lib/plan';
+import { dayKey, money, moneySaved, yearlyCost } from '@/lib/plan';
 import type { State } from '@/lib/store';
+import { quoteWhy } from '@/lib/why';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -32,7 +33,7 @@ function at(base: Date, days: number, hour: number, minute: number) {
 
 /**
  * Schedules the next three weeks of notifications, each written for the day it lands on:
- * - Mornings: that day's lung update (or a plan nudge while tapering).
+ * - Mornings: the daily pledge, quoting their own why, with that day's lung update.
  * - 15 minutes before the user's usual craving time: money saved, a specific lung fact, or their why, in rotation.
  * SOS only opens from the in-app craving button, never from a notification. Rerun whenever state changes the numbers:
  * after onboarding, a slip, and when the app comes back to the foreground.
@@ -56,13 +57,19 @@ export async function scheduleNudges(state: State, now = Date.now()) {
     const lungDay = since === null ? null : Math.max(0, Math.floor((morning.getTime() - since) / DAY));
     const savedThen = saved + perDay * ((craving.getTime() - now) / DAY);
 
-    if (morning.getTime() > now) {
+    // Skip this morning's if they've already pledged today.
+    const pledged = d === 0 && state.pledges.includes(dayKey(now));
+    if (morning.getTime() > now && !pledged) {
       const u = lungDay === null ? null : lungUpdate(lungDay, vapeOnly).current;
+      const why = quoteWhy(state.why);
+      const lungs = u ? `Your lungs today: ${u.title.toLowerCase()}.` : '';
       jobs.push(
         Notifications.scheduleNotificationAsync({
-          content: u
-            ? { title: `Your lungs, day ${lungDay}: ${u.title.toLowerCase()}`, body: u.body, data: { url: '/recovery' } }
-            : { title: 'A fresh start', body: 'Today’s step takes two minutes. Do it before the day gets busy.', data: { url: '/' } },
+          content: {
+            title: 'Make today’s pledge',
+            body: [why, lungs].filter(Boolean).join(' ') || 'One tap to commit to today.',
+            data: { url: '/pledge-today' },
+          },
           trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: morning },
         }),
       );
@@ -79,7 +86,7 @@ export async function scheduleNudges(state: State, now = Date.now()) {
               data: { url: '/' },
             }
           : kind === 'why'
-            ? { title: 'Remember why', body: `You’re doing this ${state.why}.`, data: { url: '/' } }
+            ? { title: 'Remember why you’re doing this', body: quoteWhy(state.why), data: { url: '/' } }
             : {
                 title: lungDay === null ? 'Your lungs, right now' : `Your lungs, day ${lungDay}`,
                 body: pickFact(state.substances, lungDay ?? 0, d).text,

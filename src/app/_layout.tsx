@@ -85,6 +85,7 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="sos" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
           <Stack.Screen name="slip" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="pledge-today" options={{ presentation: 'modal' }} />
         </Stack.Protected>
         <Stack.Protected guard={!inApp}>
           <Stack.Screen name="onboarding" />

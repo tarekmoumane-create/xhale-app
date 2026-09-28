@@ -17,6 +17,7 @@ import { track } from '@/lib/analytics';
 import { lungDays, lungsSince, lungUpdate, pickFact } from '@/lib/lungs';
 import { money, moneySaved } from '@/lib/plan';
 import { getState, setState } from '@/lib/store';
+import { quoteWhy } from '@/lib/why';
 
 // Mic metering (dB) mapped to blow strength: quieter than QUIET is ignored, LOUD is a full blow.
 const QUIET_DB = -24;
@@ -92,34 +93,45 @@ export default function SOS() {
     return () => clearInterval(id);
   }, [round, density]);
 
-  // Microphone: blowing on the phone clears the smoke.
+  // Microphone: blowing on the phone clears the smoke. Any failure here just leaves wiping as the way to clear it.
   useEffect(() => {
     let active = true;
+    let started = false;
     (async () => {
-      const { granted } = await requestRecordingPermissionsAsync();
-      if (!granted || !active) return;
-      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
-      await recorder.prepareToRecordAsync();
-      if (active) {
+      try {
+        const { granted } = await requestRecordingPermissionsAsync();
+        if (!granted || !active) return;
+        await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+        await recorder.prepareToRecordAsync();
+        if (!active) return;
         recorder.record();
+        started = true;
         setMicOn(true);
+      } catch {
+        setMicOn(false);
       }
     })();
     return () => {
       active = false;
-      recorder.stop().catch(() => {});
+      try {
+        if (started) recorder.stop().catch(() => {});
+      } catch {}
       setAudioModeAsync({ allowsRecording: false }).catch(() => {});
     };
   }, [recorder]);
 
   useEffect(() => {
+    if (!micOn) return;
     const id = setInterval(() => {
       if (phaseRef.current !== 'blow') return wind.set(0);
-      const level = recorder.isRecording ? (recorder.getStatus().metering ?? -160) : -160;
+      let level = -160;
+      try {
+        if (recorder.isRecording) level = recorder.getStatus().metering ?? -160;
+      } catch {}
       wind.set(Math.max(0, Math.min(1, (level - QUIET_DB) / (LOUD_DB - QUIET_DB))));
     }, 100);
     return () => clearInterval(id);
-  }, [recorder, wind]);
+  }, [micOn, recorder, wind]);
 
   const again = () => {
     setPhase('inhale');
@@ -197,7 +209,7 @@ export default function SOS() {
                   {me.saved >= 1
                     ? `${money(me.saved)} saved so far`
                     : me.why
-                      ? `You’re doing this ${me.why}.`
+                      ? `Your why: ${quoteWhy(me.why)}`
                       : 'Every one you skip counts.'}
                 </Text>
                 <Tap accessibilityRole="button" onPress={again} style={styles.again}>

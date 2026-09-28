@@ -12,6 +12,7 @@ import { PRIVACY_URL, TERMS_URL } from '@/lib/links';
 import { money, taperEnd, yearlyCost } from '@/lib/plan';
 import { FALLBACK_PRICES, getPrice, purchase, restore, type PlanId } from '@/lib/purchases';
 import { useStore } from '@/lib/store';
+import { quoteWhy } from '@/lib/why';
 
 export default function Paywall() {
   const offerSeen = useStore((s) => s.offerSeen);
@@ -118,9 +119,7 @@ export default function Paywall() {
           {COACH_ENABLED ? (
             <Row icon="bubble.left.and.bubble.right.fill" android="forum" color={Colors.accent} text="A coach who knows your plan" />
           ) : null}
-          {why ? (
-            <Row icon="heart.fill" android="favorite" color={Colors.danger} text={why.charAt(0).toUpperCase() + why.slice(1)} />
-          ) : null}
+          {why ? <Row icon="heart.fill" android="favorite" color={Colors.danger} text={quoteWhy(why)} /> : null}
         </Card>
       </Enter>
 

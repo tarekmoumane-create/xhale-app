@@ -31,6 +31,8 @@ export type State = {
   modes: Record<Substance, QuitMode>;
   why: string;
   signed: boolean;
+  /** Days (dayKey) the user ticked their morning pledge. */
+  pledges: string[];
   startedAt: number | null;
   onboarded: boolean;
   pro: boolean;
@@ -65,6 +67,7 @@ export const initialState: State = {
   modes: { cig: 'taper', vape: 'taper', weed: 'cold' },
   why: '',
   signed: false,
+  pledges: [],
   startedAt: null,
   onboarded: false,
   pro: false,

@@ -7,6 +7,7 @@ import { Body, Button, Caption, Card, Enter, Eyebrow, Icon, ProgressBar, Screen,
 import { Colors, Fonts, SubstanceMeta } from '@/constants/theme';
 import { scoreAnswers, type ScoreResult } from '@/lib/quiz';
 import { useStore } from '@/lib/store';
+import { quoteWhy } from '@/lib/why';
 
 export default function Score() {
   const substances = useStore((s) => s.substances);
@@ -57,8 +58,8 @@ export default function Score() {
       {why ? (
         <Enter i={3}>
           <Card>
-            <Eyebrow>You’re doing this</Eyebrow>
-            <Text style={styles.why}>{why.charAt(0).toUpperCase() + why.slice(1)}.</Text>
+            <Eyebrow>Your why</Eyebrow>
+            <Text style={styles.why}>{quoteWhy(why)}</Text>
           </Card>
         </Enter>
       ) : null}

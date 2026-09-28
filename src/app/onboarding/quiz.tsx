@@ -1,12 +1,12 @@
 import { router } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 import Animated, { FadeIn, FadeInRight, FadeOutLeft } from 'react-native-reanimated';
 
-import { Body, Button, Caption, Eyebrow, Icon, Option, Screen, Slider, StepHeader, Title } from '@/components/ui';
+import { Body, Button, Caption, Chip, Eyebrow, Icon, Option, Screen, Slider, StepHeader, Title, ui } from '@/components/ui';
 import { Colors, Fonts } from '@/constants/theme';
-import { buildQuiz, whyFromAnswers, type Answers, type Slide } from '@/lib/quiz';
-import { getState, setState, useStore } from '@/lib/store';
+import { buildQuiz, type Answers, type Slide } from '@/lib/quiz';
+import { setState, useStore } from '@/lib/store';
 
 const START = 0.08;
 const SPAN = 0.42;
@@ -14,6 +14,7 @@ const SPAN = 0.42;
 export default function Quiz() {
   const substances = useStore((s) => s.substances);
   const answers = useStore((s) => s.answers);
+  const why = useStore((s) => s.why);
   const slides = useMemo(() => buildQuiz(substances), [substances]);
   const [i, setI] = useState(0);
   const slide = slides[i];
@@ -29,14 +30,12 @@ export default function Quiz() {
       setState((st) => ({ habits: { ...st.habits, cigPerDay: Math.min(40, n) } }));
     }
     if (i + 1 >= slides.length) {
-      const why = whyFromAnswers(getState().answers);
-      if (why) setState({ why });
       router.replace('/onboarding/score');
     } else setI(i + 1);
   };
   const back = () => (i === 0 ? router.back() : setI(i - 1));
 
-  const ready = isAnswered(slide, answers);
+  const ready = slide.kind === 'text' ? why.trim().length >= 3 : isAnswered(slide, answers);
   // Single choice advances on tap; everything else has a Continue button.
   const needsButton = slide.kind !== 'choice';
 
@@ -52,6 +51,7 @@ export default function Quiz() {
         <SlideBody
           slide={slide}
           answers={answers}
+          why={why}
           answer={answer}
           onChosen={() => {
             if (advancing.current) return;
@@ -75,11 +75,13 @@ function isAnswered(slide: Slide, a: Answers) {
 function SlideBody({
   slide,
   answers,
+  why,
   answer,
   onChosen,
 }: {
   slide: Slide;
   answers: Answers;
+  why: string;
   answer: (id: string, v: number | number[]) => void;
   onChosen: () => void;
 }) {
@@ -104,6 +106,34 @@ function SlideBody({
       {slide.sub ? <Body>{slide.sub}</Body> : null}
     </View>
   );
+
+  if (slide.kind === 'text') {
+    return (
+      <>
+        {header}
+        <TextInput
+          value={why}
+          onChangeText={(t) => setState({ why: t })}
+          placeholder={slide.placeholder}
+          placeholderTextColor={Colors.text3}
+          multiline
+          maxLength={160}
+          returnKeyType="done"
+          submitBehavior="blurAndSubmit"
+          style={styles.whyInput}
+          accessibilityLabel={slide.title}
+        />
+        <View style={{ gap: 8 }}>
+          <Caption>Or start from one of these</Caption>
+          <View style={ui.wrapRow}>
+            {slide.suggestions.map((s) => (
+              <Chip key={s} label={s} selected={why === s} onPress={() => setState({ why: s })} />
+            ))}
+          </View>
+        </View>
+      </>
+    );
+  }
 
   if (slide.kind === 'choice') {
     const current = answers[slide.id];
@@ -196,5 +226,18 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   sliderValue: { fontFamily: Fonts.display, fontSize: 64, lineHeight: 72, color: Colors.text, textAlign: 'center' },
+  whyInput: {
+    minHeight: 120,
+    padding: 16,
+    borderRadius: 18,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.borderStrong,
+    fontFamily: Fonts.semi,
+    fontSize: 18,
+    lineHeight: 25,
+    color: Colors.text,
+    textAlignVertical: 'top',
+  },
   sliderEnds: { flexDirection: 'row', justifyContent: 'space-between' },
 });

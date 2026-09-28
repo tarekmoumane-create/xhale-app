@@ -49,14 +49,15 @@
         "expo-camera",
         {
           "cameraPermission": "SOS shows your own face when a craving hits. Nothing is recorded or saved.",
-          "microphonePermission": false,
+          "microphonePermission": "Blow on your phone during a craving to clear the smoke. Audio is never recorded or saved.",
           "recordAudioAndroid": false
         }
       ],
       [
         "expo-audio",
         {
-          "microphonePermission": "Blow on your phone during a craving to clear the smoke. Audio is never recorded or saved."
+          "microphonePermission": "Blow on your phone during a craving to clear the smoke. Audio is never recorded or saved.",
+          "enableBackgroundPlayback": false
         }
       ],
       "expo-notifications",

@@ -46,14 +46,14 @@ export default function Pledge() {
           </Text>
           <Text style={styles.pledge}>When a craving hits, I’ll ride it out. If I slip, I’ll get back on track the same day.</Text>
           <View style={styles.whyBox}>
-            <Eyebrow>I’m doing this</Eyebrow>
+            <Eyebrow>My why</Eyebrow>
             <TextInput
               value={why}
               onChangeText={(t) => setState({ why: t })}
-              placeholder="to be there for the people I love"
+              placeholder="I want to stop because…"
               placeholderTextColor={Colors.text3}
               style={styles.whyInput}
-              maxLength={80}
+              maxLength={160}
               accessibilityLabel="Why you're quitting"
             />
           </View>

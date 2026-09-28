@@ -1,11 +1,12 @@
 import type { Substance } from '@/constants/theme';
 
 /**
- * The onboarding quiz is always 11 slides: questions, plus reflection slides that
- * mirror answers back. Scoring underneath uses short validated screens:
+ * The onboarding quiz is up to 11 slides: questions, plus reflection slides that
+ * mirror answers back, and an open question asking why they want to stop.
  * - Nicotine: Heaviness of Smoking Index (time to first use + amount per day, 0–6),
  *   worded for vaping when needed (an adaptation for vapers).
- * - Weed: CUDIT-SF (3 items from CUDIT-R, 0–12).
+ * - Weed: two frequency items (0–8): losing control once started (from CUDIT-R) and
+ *   faking sobriety around people. Not a validated scale; the results screen says it's a screening.
  */
 
 export type Answers = Record<string, number | number[]>;
@@ -33,7 +34,16 @@ export type SliderSlide = {
   caption: (v: number) => string;
 };
 export type ReflectionSlide = { kind: 'reflection'; id: string; content: (a: Answers) => { eyebrow: string; title: string; body: string } };
-export type Slide = ChoiceSlide | MultiSlide | SliderSlide | ReflectionSlide;
+export type TextSlide = {
+  kind: 'text';
+  id: string;
+  eyebrow: string;
+  title: string;
+  sub?: string;
+  placeholder: string;
+  suggestions: string[];
+};
+export type Slide = ChoiceSlide | MultiSlide | SliderSlide | ReflectionSlide | TextSlide;
 
 export const QUIZ_LENGTH = 11;
 
@@ -63,13 +73,14 @@ const ECHO = [
   'can see it affecting people you care about',
 ];
 
-export const WHY_OPTIONS = [
-  { label: 'Sleeping properly', why: 'to sleep properly again' },
-  { label: 'Money in my account', why: 'to stop burning my money' },
-  { label: 'Breathing easier', why: 'to breathe easy again' },
-  { label: 'Feeling in control again', why: 'to feel in control again' },
-  { label: 'Not hiding it anymore', why: 'to stop hiding it' },
-  { label: 'Being there for someone', why: 'to be there for the people I love' },
+/** Tap-to-fill starting points for the open "why" question. */
+export const WHY_SUGGESTIONS = [
+  'I want to sleep properly again',
+  'I’m tired of burning my money',
+  'I want to breathe easy again',
+  'I want to feel in control again',
+  'I’m done hiding it',
+  'I want to be there for the people I love',
 ];
 
 function nicotineWords(subs: Substance[]) {
@@ -165,18 +176,11 @@ export function buildQuiz(subs: Substance[]): Slide[] {
     title: 'How often did you keep going after you meant to stop?',
     options: freq(),
   };
-  const wTime: ChoiceSlide = {
+  const wHide: ChoiceSlide = {
     kind: 'choice',
-    id: 'w_time',
+    id: 'w_hide',
     eyebrow: 'Weed · last 6 months',
-    title: 'How often did getting high, being high or coming down take up most of your day?',
-    options: freq(),
-  };
-  const wMemory: ChoiceSlide = {
-    kind: 'choice',
-    id: 'w_memory',
-    eyebrow: 'Weed · last 6 months',
-    title: 'How often have you noticed your memory or focus slipping afterwards?',
+    title: 'How often do you find yourself faking sobriety around friends or loved ones?',
     options: freq(),
   };
 
@@ -255,12 +259,14 @@ export function buildQuiz(subs: Substance[]): Slide[] {
           },
   };
 
-  const why: ChoiceSlide = {
-    kind: 'choice',
+  const why: TextSlide = {
+    kind: 'text',
     id: 'why',
     eyebrow: 'Your why',
-    title: 'If you woke up free of this tomorrow, what would you notice first?',
-    options: WHY_OPTIONS.map((o, points) => ({ label: o.label, points })),
+    title: 'Why do you want to stop?',
+    sub: 'In your own words. We’ll show you this every morning when you make your pledge.',
+    placeholder: 'I want to stop because…',
+    suggestions: WHY_SUGGESTIONS,
   };
 
   const ready: SliderSlide = {
@@ -283,7 +289,7 @@ export function buildQuiz(subs: Substance[]): Slide[] {
 
   const core: Slide[] = [];
   if (nicotine) core.push(wake, amount);
-  if (weed) core.push(wStop, wTime, wMemory);
+  if (weed) core.push(wStop, wHide);
   const tail: Slide[] = [sounds, heard, tries, triesReflect, why, ready];
 
   // Optional slides fill the quiz up to exactly QUIZ_LENGTH, in this priority order.
@@ -340,8 +346,8 @@ export function scoreAnswers(subs: Substance[], a: Answers): ScoreResult[] {
     });
   }
   if (subs.includes('weed')) {
-    const cudit = num(a, 'w_stop') + num(a, 'w_time') + num(a, 'w_memory');
-    const segment = cudit <= 1 ? 0 : cudit <= 5 ? 1 : 2;
+    const score = num(a, 'w_stop') + num(a, 'w_hide');
+    const segment = score <= 1 ? 0 : score <= 4 ? 1 : 2;
     out.push({
       key: 'weed',
       label: 'Weed use',
@@ -356,9 +362,4 @@ export function scoreAnswers(subs: Substance[], a: Answers): ScoreResult[] {
     });
   }
   return out;
-}
-
-export function whyFromAnswers(a: Answers) {
-  const i = a.why;
-  return typeof i === 'number' && WHY_OPTIONS[i] ? WHY_OPTIONS[i].why : '';
 }
