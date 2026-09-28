@@ -1,247 +1,219 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { BlurMask, Canvas, Fill, Group, Path, Shader, Skia, useClock, usePathValue } from '@shopify/react-native-skia';
+import { useState } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
+import {
   Easing,
   useAnimatedReaction,
-  useAnimatedStyle,
+  useDerivedValue,
   useReducedMotion,
   useSharedValue,
-  withRepeat,
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
-import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 
-type Point = { x: number; y: number } | null;
-type PuffSpec = { x: number; y: number; r: number; a: number; ax: number; ay: number; period: number; resist: number };
-
-/** Deterministic pseudo-random so a given layout looks the same between renders. */
-function rng(seed: number) {
-  let s = seed % 2147483647 || 1;
-  return () => (s = (s * 16807) % 2147483647) / 2147483647;
-}
-
-function layout(w: number, h: number, count: number, seed: number): PuffSpec[] {
-  const rand = rng(seed);
-  const cols = Math.max(2, Math.round(Math.sqrt((count * w) / h)));
-  const rows = Math.ceil(count / cols);
-  const cw = w / cols;
-  const ch = h / rows;
-  const out: PuffSpec[] = [];
-  for (let i = 0; i < count; i++) {
-    const c = i % cols;
-    const r = Math.floor(i / cols);
-    out.push({
-      x: (c + 0.5) * cw + (rand() - 0.5) * cw * 0.9,
-      y: (r + 0.5) * ch + (rand() - 0.5) * ch * 0.9,
-      r: Math.max(cw, ch) * (0.75 + rand() * 0.55),
-      a: 0.55 + rand() * 0.4,
-      ax: (rand() - 0.5) * 36,
-      ay: -10 - rand() * 26,
-      period: 5200 + rand() * 5200,
-      resist: 0.05 + rand() * 0.07,
-    });
-  }
-  return out;
-}
-
-function Puff({
-  p,
-  color,
-  finger,
-  wind,
-  density,
-  sweep,
-  still,
-  onGone,
-}: {
-  p: PuffSpec;
-  color: string;
-  finger: SharedValue<Point>;
-  wind?: SharedValue<number>;
-  density?: SharedValue<number>;
-  sweep: SharedValue<number>;
-  still: boolean;
-  onGone: () => void;
-}) {
-  const gone = useSharedValue(0);
-  const dx = useSharedValue(0);
-  const dy = useSharedValue(0);
-  const drift = useSharedValue(0);
-  const done = useSharedValue(false);
-
-  useEffect(() => {
-    if (!still) drift.set(withRepeat(withTiming(1, { duration: p.period, easing: Easing.inOut(Easing.sin) }), -1, true));
-  }, [drift, p.period, still]);
-
-  const clear = (vx: number, vy: number) => {
-    'worklet';
-    if (done.value) return;
-    done.set(true);
-    const ease = { duration: 1100, easing: Easing.out(Easing.cubic) };
-    dx.set(withTiming(vx, ease));
-    dy.set(withTiming(vy, ease));
-    gone.set(withTiming(1, ease));
-    scheduleOnRN(onGone);
-  };
-
-  // Wiping with a finger pushes the puff away from the touch.
-  useAnimatedReaction(
-    () => finger.value,
-    (f) => {
-      if (!f || done.value) return;
-      const ex = f.x - p.x;
-      const ey = f.y - p.y;
-      const d = Math.sqrt(ex * ex + ey * ey);
-      if (d < p.r * 0.7) {
-        const k = d > 1 ? p.r / d : 0;
-        clear(-ex * k, -ey * k - p.r * 0.3);
-      }
-    },
-  );
-
-  // Blowing thins the puff a little on every reading, then carries it up and away.
-  useAnimatedReaction(
-    () => wind?.value ?? 0,
-    (w) => {
-      if (w <= 0.04 || done.value) return;
-      gone.set(Math.min(1, gone.value + w * p.resist));
-      dy.set(-gone.value * p.r * 0.6);
-      if (gone.value > 0.85) clear(p.ax * 2, -p.r * 1.6);
-    },
-  );
-
-  useAnimatedReaction(
-    () => sweep.value,
-    (s) => {
-      if (s > 0) clear(p.ax * 3, -p.r * 1.8);
-    },
-  );
-
-  const style = useAnimatedStyle(() => ({
-    opacity: (density ? density.value : 1) * p.a * (1 - gone.value),
-    transform: [
-      { translateX: drift.value * p.ax + dx.value },
-      { translateY: drift.value * p.ay + dy.value },
-      { scale: 1 + gone.value * 0.6 + drift.value * 0.1 },
-    ],
-  }));
-
-  const size = p.r * 2;
-  return (
-    <Animated.View style={[styles.puff, { left: p.x - p.r, top: p.y - p.r, width: size, height: size }, style]}>
-      <Svg width={size} height={size}>
-        <Defs>
-          <RadialGradient id="g" cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor={color} stopOpacity={0.62} />
-            <Stop offset="0.45" stopColor={color} stopOpacity={0.34} />
-            <Stop offset="1" stopColor={color} stopOpacity={0} />
-          </RadialGradient>
-        </Defs>
-        <Circle cx={p.r} cy={p.r} r={p.r} fill="url(#g)" />
-      </Svg>
-    </Animated.View>
-  );
-}
-
 /**
- * Drifting smoke that fills its parent.
- * - `touch`: wipe it away with a finger.
- * - `wind`: 0..1, e.g. microphone level while the user blows on the phone.
- * - `density`: 0..1 thickness, e.g. to thicken the smoke while they inhale.
- * Change `resetKey` to bring the smoke back.
+ * Real-looking smoke: domain-warped fractal noise on the GPU. `clear` breaks it into
+ * wisps and lifts it away; `density` thickens it; a wiping finger erases soft trails.
  */
+const SMOKE = Skia.RuntimeEffect.Make(`
+uniform float2 res;
+uniform float t;
+uniform float density;
+uniform float clear;
+
+float hash(float2 p) { return fract(sin(dot(p, float2(127.1, 311.7))) * 43758.5453); }
+float noise(float2 p) {
+  float2 i = floor(p);
+  float2 f = fract(p);
+  float2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + float2(1.0, 0.0)), u.x),
+             mix(hash(i + float2(0.0, 1.0)), hash(i + float2(1.0, 1.0)), u.x), u.y);
+}
+float fbm(float2 p) {
+  float v = 0.0;
+  float a = 0.5;
+  for (int i = 0; i < 4; i++) {
+    v += a * noise(p);
+    p = p * 2.03 + float2(1.7, 9.2);
+    a *= 0.5;
+  }
+  return v;
+}
+
+half4 main(float2 xy) {
+  float2 uv = xy / res.y * 2.4;
+  // Smoke rises slowly, and gets carried up and away as it clears.
+  uv.y += t * 0.06 + clear * 1.2;
+  float2 q = float2(fbm(uv + float2(0.0, t * 0.10)), fbm(uv + float2(5.2, 1.3) - t * 0.07));
+  float2 r = float2(fbm(uv + 3.2 * q + float2(1.7, 9.2) + t * 0.13),
+                    fbm(uv + 3.2 * q + float2(8.3, 2.8) - t * 0.11));
+  float f = fbm(uv + 3.0 * r);
+
+  float wisps = smoothstep(0.30 + clear * 0.55, 0.85, f);
+  float haze = (0.35 + 0.35 * f) * (1.0 - clear);
+  float a = clamp((wisps * 1.1 + haze) * density, 0.0, 1.0) * (1.0 - clear * clear);
+
+  float3 dark = float3(0.36, 0.37, 0.39);
+  float3 light = float3(0.93, 0.93, 0.94);
+  float3 col = mix(dark, light, smoothstep(0.35, 0.95, f + length(r) * 0.25));
+  return half4(half3(col * a), half(a));
+}
+`)!;
+
+const GRID_X = 10;
+const GRID_Y = 18;
+
 export function Smoke({
-  count = 24,
-  color = '#C9CED2',
   touch = false,
   wind,
   density,
-  resetKey = 0,
-  clearAt = 0.8,
+  clearAt = 0.7,
   onCleared,
   onProgress,
   style,
 }: {
-  count?: number;
-  color?: string;
   touch?: boolean;
+  /** 0..1, e.g. microphone level while the user blows on the phone. */
   wind?: SharedValue<number>;
+  /** 0..1 thickness, e.g. to thicken the smoke while they breathe in. */
   density?: SharedValue<number>;
-  resetKey?: number;
+  /** Fraction of the screen wiped before the rest clears on its own. */
   clearAt?: number;
   onCleared?: () => void;
   onProgress?: (fraction: number) => void;
   style?: StyleProp<ViewStyle>;
 }) {
-  const [size, setSize] = useState({ w: 0, h: 0 });
-  const finger = useSharedValue<Point>(null);
-  const sweep = useSharedValue(0);
+  const [size, setSize] = useState({ w: 1, h: 1 });
   const still = useReducedMotion();
-  const goneCount = useRef(0);
-  const firedRef = useRef(false);
+  const clock = useClock();
+  const clear = useSharedValue(0);
+  const done = useSharedValue(false);
+  const points = useSharedValue<number[]>([]);
+  const cells = useSharedValue<number[]>([]);
+  const reported = useSharedValue(0);
 
-  const puffs = useMemo(() => (size.w ? layout(size.w, size.h, count, 7 + resetKey * 131) : []), [size.w, size.h, count, resetKey]);
+  const cleared = () => onCleared?.();
+  const progress = (f: number) => onProgress?.(f);
+  const report = (f: number) => {
+    'worklet';
+    if (f <= reported.value) return;
+    reported.set(f);
+    scheduleOnRN(progress, f);
+  };
 
-  useEffect(() => {
-    goneCount.current = 0;
-    firedRef.current = false;
-    sweep.set(0);
-    onProgress?.(0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resetKey, sweep]);
+  const finish = () => {
+    'worklet';
+    if (done.value) return;
+    done.set(true);
+    clear.set(withTiming(1, { duration: 1200, easing: Easing.out(Easing.cubic) }));
+    scheduleOnRN(cleared);
+  };
 
-  const onGone = () => {
-    goneCount.current += 1;
-    const frac = goneCount.current / Math.max(1, puffs.length);
-    onProgress?.(Math.min(1, frac));
-    if (!firedRef.current && frac >= clearAt) {
-      firedRef.current = true;
-      sweep.set(1);
-      onCleared?.();
+  // Blowing thins the whole cloud a little on every reading.
+  useAnimatedReaction(
+    () => wind?.value ?? 0,
+    (w) => {
+      if (done.value || w <= 0.05) return;
+      const next = Math.min(1, clear.value + w * 0.04);
+      clear.set(next);
+      report(next);
+      if (next >= 0.55) finish();
+    },
+  );
+
+  const wipe = usePathValue((b) => {
+    'worklet';
+    const p = points.value;
+    let pen = false;
+    for (let i = 0; i < p.length; i += 2) {
+      if (Number.isNaN(p[i])) {
+        pen = false;
+        continue;
+      }
+      if (pen) b.lineTo(p[i], p[i + 1]);
+      else {
+        b.moveTo(p[i], p[i + 1]);
+        b.lineTo(p[i] + 0.1, p[i + 1]);
+        pen = true;
+      }
+    }
+  });
+
+  const uniforms = useDerivedValue(() => ({
+    res: [size.w, size.h],
+    t: still ? 0 : clock.value / 1000,
+    density: density ? density.value : 1,
+    clear: clear.value,
+  }));
+
+  const touchAt = (x: number, y: number, start: boolean) => {
+    'worklet';
+    if (done.value) return;
+    points.modify((arr) => {
+      'worklet';
+      if (start && arr.length) arr.push(NaN, NaN);
+      arr.push(x, y);
+      return arr;
+    });
+    // Mark the grid cells under the finger to know how much has been wiped.
+    const cx = Math.floor((x / size.w) * GRID_X);
+    const cy = Math.floor((y / size.h) * GRID_Y);
+    let changed = false;
+    cells.modify((arr) => {
+      'worklet';
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          const gx = cx + dx;
+          const gy = cy + dy;
+          if (gx < 0 || gy < 0 || gx >= GRID_X || gy >= GRID_Y) continue;
+          const k = gy * GRID_X + gx;
+          if (!arr[k]) {
+            arr[k] = 1;
+            changed = true;
+          }
+        }
+      }
+      return arr;
+    });
+    if (changed) {
+      const frac = cells.value.reduce((n, v) => n + (v ? 1 : 0), 0) / (GRID_X * GRID_Y);
+      report(frac);
+      if (frac >= clearAt) finish();
     }
   };
 
   const pan = Gesture.Pan()
     .minDistance(0)
     .enabled(touch)
-    .onBegin((e) => {
-      finger.set({ x: e.x, y: e.y });
-    })
-    .onUpdate((e) => {
-      finger.set({ x: e.x, y: e.y });
-    })
-    .onFinalize(() => {
-      finger.set(null);
-    });
+    .onBegin((e) => touchAt(e.x, e.y, true))
+    .onUpdate((e) => touchAt(e.x, e.y, false));
 
   return (
     <GestureDetector gesture={pan}>
       <View
-        style={[StyleSheet.absoluteFill, styles.clip, style]}
+        style={[StyleSheet.absoluteFill, style]}
         pointerEvents={touch ? 'auto' : 'none'}
         onLayout={(e) => setSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
-        {puffs.map((p, i) => (
-          <Puff
-            key={`${resetKey}-${i}`}
-            p={p}
-            color={color}
-            finger={finger}
-            wind={wind}
-            density={density}
-            sweep={sweep}
-            still={still}
-            onGone={onGone}
-          />
-        ))}
+        <Canvas style={StyleSheet.absoluteFill}>
+          <Group layer>
+            <Fill>
+              <Shader source={SMOKE} uniforms={uniforms} />
+            </Fill>
+            <Path
+              path={wipe}
+              style="stroke"
+              strokeWidth={Math.max(90, size.w * 0.28)}
+              strokeCap="round"
+              strokeJoin="round"
+              color="black"
+              blendMode="dstOut">
+              <BlurMask blur={26} style="normal" />
+            </Path>
+          </Group>
+        </Canvas>
       </View>
     </GestureDetector>
   );
 }
-
-const styles = StyleSheet.create({
-  clip: { overflow: 'hidden' },
-  puff: { position: 'absolute' },
-});

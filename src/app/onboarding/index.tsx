@@ -27,7 +27,6 @@ export default function Welcome() {
 
         <Smoke
           touch
-          count={26}
           onProgress={(f) => f > 0 && setStarted(true)}
           onCleared={() => {
             setClear(true);
