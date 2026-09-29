@@ -45,12 +45,12 @@ half4 main(float2 xy) {
   float n = 0.7 * b + 0.3 * c;
 
   // Fill from the bottom up as density grows, with a soft, billowy edge.
-  float edge = density * 1.35 - 0.2;
+  float edge = density * 1.7 - 0.25;
   float fill = smoothstep(edge - 0.25, edge + 0.05, up + (n - 0.5) * 0.35);
   fill = 1.0 - fill;
 
   // Fully covers the screen once it's in, with light and shade so it still reads as smoke.
-  float a = fill * (0.9 + 0.1 * smoothstep(0.25, 0.75, n));
+  float a = fill * (0.96 + 0.04 * smoothstep(0.25, 0.75, n));
 
   // Clearing: thin areas open up first, then the rest drifts apart.
   float hole = smoothstep(clear * 1.25 - 0.2, clear * 1.25 + 0.05, n + up * 0.1);

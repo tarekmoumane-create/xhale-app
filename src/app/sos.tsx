@@ -5,6 +5,7 @@ import { Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, FadeIn, FadeInDown, FadeOut, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Breather } from '@/components/breather';
 import { LungsFigure } from '@/components/lungs';
 import { Smoke } from '@/components/smoke';
 import { Button, Caption, IconButton, LinkButton, Tap } from '@/components/ui';
@@ -30,10 +31,11 @@ type Phase = 'fill' | 'in' | 'out' | 'clear';
 export default function SOS() {
   const [phase, setPhase] = useState<Phase>('fill');
   const [round, setRound] = useState(0);
+  const [count, setCount] = useState(0);
   const density = useSharedValue(0);
   const clear = useSharedValue(0);
   const shade = useSharedValue(0);
-  const orb = useSharedValue(0.55);
+  const orb = useSharedValue(0.84);
 
   const me = useMemo(() => {
     const s = getState();
@@ -62,11 +64,18 @@ export default function SOS() {
     const timers: ReturnType<typeof setTimeout>[] = [];
     const wait = (ms: number) => new Promise<void>((r) => timers.push(setTimeout(r, ms)));
     const calm = Easing.inOut(Easing.sin);
+    // Count down one number per second, e.g. 4-3-2-1, while a breath runs.
+    const countDown = async (ms: number) => {
+      for (let s = ms / 1000; s > 0 && !cancelled; s--) {
+        setCount(s);
+        await wait(1000);
+      }
+    };
 
     (async () => {
       clear.set(0);
       shade.set(0);
-      orb.set(0.55);
+      orb.set(0.84);
       setPhase('fill');
       density.set(0);
       density.set(withTiming(1, { duration: FILL_MS, easing: Easing.out(Easing.cubic) }));
@@ -74,14 +83,16 @@ export default function SOS() {
 
       for (let b = 1; b <= BREATHS && !cancelled; b++) {
         setPhase('in');
-        orb.set(withTiming(1, { duration: IN_MS, easing: calm }));
-        await wait(IN_MS);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+        orb.set(withTiming(1.08, { duration: IN_MS, easing: calm }));
+        await countDown(IN_MS);
         if (cancelled) return;
 
         setPhase('out');
-        orb.set(withTiming(0.55, { duration: OUT_MS, easing: calm }));
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+        orb.set(withTiming(0.84, { duration: OUT_MS, easing: calm }));
         clear.set(withTiming(b / BREATHS, { duration: OUT_MS, easing: calm }));
-        await wait(OUT_MS);
+        await countDown(OUT_MS);
       }
       if (cancelled) return;
 
@@ -98,7 +109,6 @@ export default function SOS() {
   }, [round, clear, shade, orb, density]);
 
   const shadeStyle = useAnimatedStyle(() => ({ opacity: shade.value * 0.88 }));
-  const orbStyle = useAnimatedStyle(() => ({ transform: [{ scale: orb.value }], opacity: 0.35 + orb.value * 0.35 }));
 
   return (
     <View style={styles.root}>
@@ -112,15 +122,22 @@ export default function SOS() {
 
         {phase !== 'clear' ? (
           <View pointerEvents="none" style={styles.cueWrap}>
-            <View style={styles.orbBox}>
-              <Animated.View style={[styles.orb, orbStyle]} />
-              <Animated.Text key={phase} entering={FadeIn.duration(900)} exiting={FadeOut.duration(500)} style={styles.cueBig}>
-                {phase === 'fill' ? 'Three slow breaths' : phase === 'in' ? 'Breathe in' : 'And slowly out'}
+            <Breather
+              mood={phase === 'fill' ? 'hello' : phase === 'in' ? 'in' : 'out'}
+              count={phase === 'fill' ? undefined : count}
+              scale={orb}
+            />
+            <View style={styles.pill}>
+              <Animated.Text key={phase} entering={FadeIn.duration(700)} exiting={FadeOut.duration(400)} style={styles.cueBig}>
+                {phase === 'fill' ? 'Three slow breaths with me' : phase === 'in' ? 'Breathe in' : 'Now slowly out'}
               </Animated.Text>
             </View>
           </View>
         ) : (
           <ScrollView contentContainerStyle={styles.reveal} showsVerticalScrollIndicator={false}>
+            <Animated.View entering={FadeIn.duration(600)} style={{ alignItems: 'center' }}>
+              <Breather mood="happy" scale={orb} size={120} />
+            </Animated.View>
             <Animated.View entering={FadeInDown.duration(700).delay(500)}>
               <Text style={styles.quote}>{quote}</Text>
             </Animated.View>
@@ -172,13 +189,12 @@ const styles = StyleSheet.create({
   layer: { ...StyleSheet.absoluteFill, paddingHorizontal: 20 },
   top: { flexDirection: 'row', justifyContent: 'flex-end', paddingTop: 4 },
   cueWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 80 },
-  orbBox: { width: 260, height: 260, alignItems: 'center', justifyContent: 'center' },
-  orb: {
-    ...StyleSheet.absoluteFill,
-    borderRadius: 130,
+  pill: {
+    marginTop: 8,
+    paddingHorizontal: 22,
+    paddingVertical: 12,
+    borderRadius: 999,
     backgroundColor: 'rgba(10,11,13,0.55)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(245,243,239,0.35)',
   },
   cueBig: { fontFamily: Fonts.display, fontSize: 26, lineHeight: 32, letterSpacing: -0.3, color: Colors.text, textAlign: 'center' },
   reveal: { flexGrow: 1, justifyContent: 'center', gap: 14, paddingVertical: 24 },
