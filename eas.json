@@ -8,21 +8,24 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_COACH_URL": "https://xhale.vercel.app/api"
+        "EXPO_PUBLIC_COACH_URL": "https://xhale.vercel.app/api",
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_rwTSfDbylycJxmLmFtaIQgmJNgz"
       },
       "channel": "development"
     },
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_COACH_URL": "https://xhale.vercel.app/api"
+        "EXPO_PUBLIC_COACH_URL": "https://xhale.vercel.app/api",
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_rwTSfDbylycJxmLmFtaIQgmJNgz"
       },
       "channel": "preview"
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_COACH_URL": "https://xhale.vercel.app/api"
+        "EXPO_PUBLIC_COACH_URL": "https://xhale.vercel.app/api",
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_rwTSfDbylycJxmLmFtaIQgmJNgz"
       },
       "channel": "production"
     }
