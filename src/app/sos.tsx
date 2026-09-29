@@ -108,7 +108,7 @@ export default function SOS() {
     };
   }, [round, clear, shade, orb, density]);
 
-  const shadeStyle = useAnimatedStyle(() => ({ opacity: shade.value * 0.88 }));
+  const shadeStyle = useAnimatedStyle(() => ({ opacity: shade.value * 0.97 }));
 
   return (
     <View style={styles.root}>

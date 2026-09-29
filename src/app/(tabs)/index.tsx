@@ -83,7 +83,8 @@ function buildRows(state: State, now: number): Row[] {
       };
     }
     const next = nextMilestone(s, since, now);
-    const days = cleanDays(state, s, now);
+    // Whole days since this streak started, so it always matches the timer above.
+    const days = Math.floor((now - since) / DAY);
     return {
       s,
       tapering: false,
@@ -151,7 +152,7 @@ export default function Today() {
           <View style={styles.statDivider} />
           <Stat value={String(state.cravings.length)} label="cravings faced" />
           <View style={styles.statDivider} />
-          <Stat value={String(bestClean)} label="clean days" />
+          <Stat value={String(bestClean)} label={bestClean === 1 ? 'clean day' : 'clean days'} />
         </Enter>
 
         <View style={{ gap: 10 }}>
