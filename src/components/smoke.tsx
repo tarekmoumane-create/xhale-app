@@ -49,8 +49,8 @@ half4 main(float2 xy) {
   float fill = smoothstep(edge - 0.25, edge + 0.05, up + (n - 0.5) * 0.35);
   fill = 1.0 - fill;
 
-  // Mostly opaque, with lighter and thinner patches so it reads as smoke, not a sheet.
-  float a = fill * (0.62 + 0.33 * smoothstep(0.25, 0.75, n));
+  // Fully covers the screen once it's in, with light and shade so it still reads as smoke.
+  float a = fill * (0.9 + 0.1 * smoothstep(0.25, 0.75, n));
 
   // Clearing: thin areas open up first, then the rest drifts apart.
   float hole = smoothstep(clear * 1.25 - 0.2, clear * 1.25 + 0.05, n + up * 0.1);

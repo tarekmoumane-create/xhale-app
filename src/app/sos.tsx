@@ -1,7 +1,6 @@
-import { RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync, useAudioRecorder } from 'expo-audio';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, FadeIn, FadeInDown, FadeOut, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,36 +16,24 @@ import { pickQuote } from '@/lib/quotes';
 import { getState, setState } from '@/lib/store';
 
 /*
- * Slow breathing with a long exhale calms the body's stress response and brings the heart rate
- * down. Four rounds of in-for-4, out-for-7 take about 45 seconds. Each slow breath out clears a
- * quarter of the smoke; with the mic on, it only clears while they're actually breathing out.
+ * Three calm, natural breaths: in for 4, out for 6 (about six breaths a minute, a pace known to
+ * settle the nervous system). Nothing to blow at and no counting. Each breath out drifts a third of
+ * the smoke away in time with it. Short on purpose: longer or forced breathing can make people light-headed.
  */
-const FILL_MS = 2500;
-const IN_S = 4;
-const OUT_S = 7;
-const ROUNDS = 4;
-const MAX_ROUNDS = 6;
-const TICK_MS = 100;
-// A breath out counts when the mic is this many dB above the room's quiet level.
-const BREATH_ABOVE_DB = 7;
+const FILL_MS = 2000;
+const IN_MS = 4000;
+const OUT_MS = 6000;
+const BREATHS = 3;
 
 type Phase = 'fill' | 'in' | 'out' | 'clear';
 
 export default function SOS() {
   const [phase, setPhase] = useState<Phase>('fill');
-  const [count, setCount] = useState(IN_S);
-  const [breath, setBreath] = useState(0);
   const [round, setRound] = useState(0);
-  const [micOn, setMicOn] = useState(false);
-  const [hearing, setHearing] = useState(false);
   const density = useSharedValue(0);
   const clear = useSharedValue(0);
   const shade = useSharedValue(0);
-  const phaseRef = useRef<Phase>('fill');
-  const levelRef = useRef(-160);
-  const micRef = useRef(false);
-  const quietRef = useRef<number | null>(null);
-  const recorder = useAudioRecorder({ ...RecordingPresets.LOW_QUALITY, isMeteringEnabled: true });
+  const orb = useSharedValue(0.55);
 
   const me = useMemo(() => {
     const s = getState();
@@ -69,102 +56,38 @@ export default function SOS() {
     track('sos_opened');
   }, []);
 
-  // Microphone level, read continuously. Failure just means the breathing runs on the timer alone.
-  useEffect(() => {
-    let active = true;
-    let started = false;
-    (async () => {
-      try {
-        const { granted } = await requestRecordingPermissionsAsync();
-        if (!granted || !active) return;
-        await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
-        await recorder.prepareToRecordAsync();
-        if (!active) return;
-        recorder.record();
-        started = true;
-        micRef.current = true;
-        setMicOn(true);
-      } catch {
-        setMicOn(false);
-      }
-    })();
-    const id = setInterval(() => {
-      try {
-        if (started && recorder.isRecording) levelRef.current = recorder.getStatus().metering ?? -160;
-      } catch {}
-    }, TICK_MS);
-    return () => {
-      active = false;
-      clearInterval(id);
-      try {
-        if (started) recorder.stop().catch(() => {});
-      } catch {}
-      setAudioModeAsync({ allowsRecording: false }).catch(() => {});
-    };
-  }, [recorder]);
-
-  // The guided session: smoke fills, then rounds of breathing in and slowly out.
+  // The session: the smoke rolls in, then three slow breaths each drift a third of it away.
   useEffect(() => {
     let cancelled = false;
     const timers: ReturnType<typeof setTimeout>[] = [];
     const wait = (ms: number) => new Promise<void>((r) => timers.push(setTimeout(r, ms)));
-    const go = (p: Phase) => {
-      phaseRef.current = p;
-      setPhase(p);
-    };
+    const calm = Easing.inOut(Easing.sin);
 
     (async () => {
       clear.set(0);
       shade.set(0);
-      quietRef.current = null;
-      go('fill');
+      orb.set(0.55);
+      setPhase('fill');
       density.set(0);
       density.set(withTiming(1, { duration: FILL_MS, easing: Easing.out(Easing.cubic) }));
       await wait(FILL_MS);
 
-      let cleared = 0;
-      for (let r = 0; r < MAX_ROUNDS && cleared < 0.98 && !cancelled; r++) {
-        setBreath(r + 1);
+      for (let b = 1; b <= BREATHS && !cancelled; b++) {
+        setPhase('in');
+        orb.set(withTiming(1, { duration: IN_MS, easing: calm }));
+        await wait(IN_MS);
+        if (cancelled) return;
 
-        // Breathe in. The room's quiet level is measured here to judge the breath out.
-        go('in');
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
-        const quiet: number[] = [];
-        for (let s = IN_S; s > 0 && !cancelled; s--) {
-          setCount(s);
-          for (let k = 0; k < 1000 / TICK_MS; k++) {
-            quiet.push(levelRef.current);
-            await wait(TICK_MS);
-          }
-        }
-        if (quiet.length) quietRef.current = quiet.sort((a, b) => a - b)[Math.floor(quiet.length / 2)];
-
-        // Breathe out slowly. Clears up to a quarter of the smoke, only while breathing out.
-        go('out');
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
-        const target = Math.min(1, cleared + 1 / ROUNDS);
-        const step = 1 / ROUNDS / ((OUT_S * 1000) / TICK_MS);
-        for (let s = OUT_S; s > 0 && !cancelled; s--) {
-          setCount(s);
-          for (let k = 0; k < 1000 / TICK_MS; k++) {
-            const q = quietRef.current;
-            const mic = micRef.current;
-            const breathing = !mic || q === null || levelRef.current > q + BREATH_ABOVE_DB;
-            setHearing(breathing && mic);
-            // Without a detected breath the smoke still thins a little, so nobody gets stuck.
-            cleared = Math.min(target, cleared + step * (breathing ? 1 : 0.25));
-            clear.set(withTiming(cleared, { duration: TICK_MS }));
-            await wait(TICK_MS);
-          }
-        }
-        setHearing(false);
+        setPhase('out');
+        orb.set(withTiming(0.55, { duration: OUT_MS, easing: calm }));
+        clear.set(withTiming(b / BREATHS, { duration: OUT_MS, easing: calm }));
+        await wait(OUT_MS);
       }
       if (cancelled) return;
 
-      go('clear');
-      clear.set(withTiming(1, { duration: 1400, easing: Easing.out(Easing.cubic) }));
+      setPhase('clear');
       shade.set(withTiming(1, { duration: 900 }));
-      track('sos_cleared', { mic: micRef.current });
+      track('sos_cleared');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     })();
 
@@ -172,10 +95,10 @@ export default function SOS() {
       cancelled = true;
       timers.forEach(clearTimeout);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [round]);
+  }, [round, clear, shade, orb, density]);
 
   const shadeStyle = useAnimatedStyle(() => ({ opacity: shade.value * 0.88 }));
+  const orbStyle = useAnimatedStyle(() => ({ transform: [{ scale: orb.value }], opacity: 0.35 + orb.value * 0.35 }));
 
   return (
     <View style={styles.root}>
@@ -189,28 +112,12 @@ export default function SOS() {
 
         {phase !== 'clear' ? (
           <View pointerEvents="none" style={styles.cueWrap}>
-            <Animated.View key={phase} entering={FadeIn.duration(600)} exiting={FadeOut.duration(300)} style={styles.cue}>
-              {phase === 'fill' ? (
-                <Text style={styles.cueBig}>Let’s slow this down.</Text>
-              ) : (
-                <>
-                  <Caption style={styles.round}>
-                    Breath {breath} of {ROUNDS}
-                  </Caption>
-                  <Text style={styles.cueBig}>{phase === 'in' ? 'Breathe in' : 'Breathe out slowly'}</Text>
-                  <Text style={styles.cueCount}>{count}</Text>
-                  <Text style={styles.cueSmall}>
-                    {phase === 'in'
-                      ? 'Through your nose. Fill your belly.'
-                      : micOn
-                        ? hearing
-                          ? 'That’s it. Long and slow.'
-                          : 'Breathe out gently onto your screen.'
-                        : 'Let it all out, slower than you breathed in.'}
-                  </Text>
-                </>
-              )}
-            </Animated.View>
+            <View style={styles.orbBox}>
+              <Animated.View style={[styles.orb, orbStyle]} />
+              <Animated.Text key={phase} entering={FadeIn.duration(900)} exiting={FadeOut.duration(500)} style={styles.cueBig}>
+                {phase === 'fill' ? 'Three slow breaths' : phase === 'in' ? 'Breathe in' : 'And slowly out'}
+              </Animated.Text>
+            </View>
           </View>
         ) : (
           <ScrollView contentContainerStyle={styles.reveal} showsVerticalScrollIndicator={false}>
@@ -259,27 +166,21 @@ export default function SOS() {
   );
 }
 
-const GLASS = 'rgba(10,11,13,0.62)';
-
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: 'transparent' },
   shade: { backgroundColor: Colors.bg },
   layer: { ...StyleSheet.absoluteFill, paddingHorizontal: 20 },
   top: { flexDirection: 'row', justifyContent: 'flex-end', paddingTop: 4 },
   cueWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 80 },
-  cue: {
-    alignItems: 'center',
-    gap: 4,
-    minWidth: 250,
-    paddingHorizontal: 28,
-    paddingVertical: 22,
-    borderRadius: 30,
-    backgroundColor: GLASS,
+  orbBox: { width: 260, height: 260, alignItems: 'center', justifyContent: 'center' },
+  orb: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: 130,
+    backgroundColor: 'rgba(10,11,13,0.55)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(245,243,239,0.35)',
   },
-  round: { fontFamily: Fonts.semi, color: Colors.text2 },
-  cueBig: { fontFamily: Fonts.display, fontSize: 28, lineHeight: 34, letterSpacing: -0.4, color: Colors.text, textAlign: 'center' },
-  cueCount: { fontFamily: Fonts.display, fontSize: 76, lineHeight: 84, color: Colors.text, fontVariant: ['tabular-nums'] },
-  cueSmall: { fontFamily: Fonts.semi, fontSize: 15, color: Colors.text2, textAlign: 'center' },
+  cueBig: { fontFamily: Fonts.display, fontSize: 26, lineHeight: 32, letterSpacing: -0.3, color: Colors.text, textAlign: 'center' },
   reveal: { flexGrow: 1, justifyContent: 'center', gap: 14, paddingVertical: 24 },
   quote: { fontFamily: Fonts.display, fontSize: 32, lineHeight: 39, letterSpacing: -0.5, color: Colors.text, paddingBottom: 8 },
   label: { fontFamily: Fonts.semi, color: Colors.accent },
