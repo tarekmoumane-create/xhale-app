@@ -57,7 +57,7 @@ web/public/            Home page, privacy policy, terms
 | Yearly | $49/year | `default` offering, `$rc_annual` |
 | Yearly (exit offer) | $19.99 first-year intro price, then $49 | `exit_offer` offering, `$rc_annual` |
 
-All three grant the `pro` entitlement. Bundle ID: `com.tarekmoumane.xhale`.
+All three grant the `xhale_pro` entitlement. Bundle ID: `com.tarekmoumane.xhale`.
 
 ## Not built yet
 

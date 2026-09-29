@@ -3,14 +3,14 @@ import Purchases, { type PurchasesPackage } from 'react-native-purchases';
 
 /**
  * RevenueCat setup (see PRODUCT.md):
- * - Entitlement `pro`
+ * - Entitlement `xhale_pro`
  * - Offering `default`: `$rc_weekly` ($4.99/week) and `$rc_annual` ($49/year, no trial)
  * - Offering `exit_offer`: `$rc_annual` on a separate product with a $19.99 first-year intro price
  *
  * Without EXPO_PUBLIC_REVENUECAT_IOS_KEY, purchases are simulated so the flow works in development.
  */
 const API_KEY = Platform.OS === 'ios' ? process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY : process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY;
-const ENTITLEMENT = 'pro';
+const ENTITLEMENT = 'xhale_pro';
 
 export const hasStore = !!API_KEY;
 

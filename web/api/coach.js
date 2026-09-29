@@ -7,7 +7,7 @@
 //
 // Env:
 //   ANTHROPIC_API_KEY          required
-//   REVENUECAT_SECRET_KEY      optional. When set, only users with the `pro` entitlement get replies.
+//   REVENUECAT_SECRET_KEY      optional. When set, only users with the `xhale_pro` entitlement get replies.
 //   KV_REST_API_URL / KV_REST_API_TOKEN (Upstash Redis from the Vercel Marketplace)
 //                              optional. When set, rate limits are shared across instances.
 //   COACH_DAILY_LIMIT          optional, messages per user per day (default 60)
@@ -99,7 +99,7 @@ async function isPro(userId) {
   });
   if (!res.ok) return false;
   const data = await res.json();
-  const pro = data?.subscriber?.entitlements?.pro;
+  const pro = data?.subscriber?.entitlements?.xhale_pro;
   const ok = !!pro && (!pro.expires_date || new Date(pro.expires_date).getTime() > Date.now());
   entitlementCache.set(userId, { ok, until: Date.now() + 10 * 60 * 1000 });
   return ok;
