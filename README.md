@@ -54,7 +54,7 @@ web/public/            Home page, privacy policy, terms
 | Product | Price | RevenueCat |
 |---|---|---|
 | Weekly | $4.99/week | `default` offering, `$rc_weekly` |
-| Yearly | $49/year, 3-day free trial | `default` offering, `$rc_annual` |
+| Yearly | $49/year | `default` offering, `$rc_annual` |
 | Yearly (exit offer) | $19.99 first-year intro price, then $49 | `exit_offer` offering, `$rc_annual` |
 
 All three grant the `pro` entitlement. Bundle ID: `com.tarekmoumane.xhale`.

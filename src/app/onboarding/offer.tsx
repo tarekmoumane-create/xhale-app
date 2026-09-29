@@ -52,7 +52,7 @@ export default function Offer() {
               {error}
             </Caption>
           ) : null}
-          <LinkButton title="No thanks, back to the free trial" onPress={() => router.back()} />
+          <LinkButton title="No thanks, go back" onPress={() => router.back()} />
         </>
       }>
       <View style={styles.orb}>

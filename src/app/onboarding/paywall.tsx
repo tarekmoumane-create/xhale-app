@@ -64,7 +64,7 @@ export default function Paywall() {
       footer={
         <>
           <Button
-            title={annual ? 'Start my free trial' : `Continue with ${prices.weekly}/week`}
+            title={annual ? `Start for ${prices.annual}/year` : `Continue with ${prices.weekly}/week`}
             loading={busy}
             onPress={() =>
               run(async () => {
@@ -81,7 +81,7 @@ export default function Paywall() {
           ) : null}
           <Caption center>
             {annual
-              ? `3 days free, then ${prices.annual} a year. Cancel anytime in Settings.`
+              ? `${prices.annual} a year, renews yearly. Cancel anytime in Settings.`
               : `${prices.weekly} a week. Cancel anytime in Settings.`}
           </Caption>
           <View style={styles.legal}>
@@ -123,26 +123,22 @@ export default function Paywall() {
         </Card>
       </Enter>
 
-      {annual ? (
-        <Enter i={2}>
-          <View style={styles.timeline}>
-            <Step title="Today" body="Full access, free" first />
-            <Step title="Day 2" body="We remind you the trial is ending" />
-            <Step title="Day 3" body={`${prices.annual}/year starts. Cancel before to pay nothing.`} last />
-          </View>
-        </Enter>
-      ) : null}
-
       <Enter i={3} style={{ gap: 10 }}>
         <PlanCard
           selected={annual}
           onPress={() => setPlan('annual')}
           title="Yearly"
           price={`${prices.annual}/year`}
-          sub="$0.94 a week, 3 days free"
+          sub="Just $0.94 a week"
           badge="Best value"
         />
-        <PlanCard selected={!annual} onPress={() => setPlan('weekly')} title="Weekly" price={`${prices.weekly}/week`} sub="No free trial" />
+        <PlanCard
+          selected={!annual}
+          onPress={() => setPlan('weekly')}
+          title="Weekly"
+          price={`${prices.weekly}/week`}
+          sub="Billed every week"
+        />
       </Enter>
     </Screen>
   );
@@ -153,21 +149,6 @@ function Row({ icon, android, color, text }: { icon: string; android: string; co
     <View style={styles.row}>
       <Icon name={icon} android={android} size={17} color={color} />
       <Text style={styles.rowText}>{text}</Text>
-    </View>
-  );
-}
-
-function Step({ title, body, first, last }: { title: string; body: string; first?: boolean; last?: boolean }) {
-  return (
-    <View style={styles.step}>
-      <View style={styles.stepRail}>
-        <View style={[styles.stepDot, first && { backgroundColor: Colors.accent, borderColor: Colors.accent }]} />
-        {!last ? <View style={styles.stepLine} /> : null}
-      </View>
-      <View style={{ flex: 1, paddingBottom: last ? 0 : 14 }}>
-        <Text style={styles.stepTitle}>{title}</Text>
-        <Caption style={{ color: Colors.text2 }}>{body}</Caption>
-      </View>
     </View>
   );
 }
@@ -214,12 +195,6 @@ const styles = StyleSheet.create({
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 4 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   rowText: { flex: 1, fontFamily: Fonts.semi, fontSize: 15, lineHeight: 20, color: Colors.text },
-  timeline: { paddingHorizontal: 6 },
-  step: { flexDirection: 'row', gap: 14 },
-  stepRail: { width: 14, alignItems: 'center' },
-  stepDot: { width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: Colors.borderStrong, marginTop: 4 },
-  stepLine: { width: 2, flex: 1, backgroundColor: Colors.surfaceHigh, marginTop: 4 },
-  stepTitle: { fontFamily: Fonts.bold, fontSize: 14, color: Colors.text },
   plan: {
     flexDirection: 'row',
     alignItems: 'center',

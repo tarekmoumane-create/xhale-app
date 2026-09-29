@@ -4,7 +4,7 @@ import Purchases, { type PurchasesPackage } from 'react-native-purchases';
 /**
  * RevenueCat setup (see PRODUCT.md):
  * - Entitlement `pro`
- * - Offering `default`: `$rc_weekly` ($4.99/week) and `$rc_annual` ($49/year, 3-day free trial)
+ * - Offering `default`: `$rc_weekly` ($4.99/week) and `$rc_annual` ($49/year, no trial)
  * - Offering `exit_offer`: `$rc_annual` on a separate product with a $19.99 first-year intro price
  *
  * Without EXPO_PUBLIC_REVENUECAT_IOS_KEY, purchases are simulated so the flow works in development.
