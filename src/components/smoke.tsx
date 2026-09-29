@@ -1,21 +1,13 @@
-import { BlurMask, Canvas, Fill, Group, Path, Shader, Skia, useClock, usePathValue } from '@shopify/react-native-skia';
+import { Canvas, Fill, Shader, Skia, useClock } from '@shopify/react-native-skia';
 import { useState } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import {
-  Easing,
-  useAnimatedReaction,
-  useDerivedValue,
-  useReducedMotion,
-  useSharedValue,
-  withTiming,
-  type SharedValue,
-} from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
+import { useDerivedValue, useReducedMotion, type SharedValue } from 'react-native-reanimated';
 
 /**
- * Real-looking smoke: domain-warped fractal noise on the GPU. `clear` breaks it into
- * wisps and lifts it away; `density` thickens it; a wiping finger erases soft trails.
+ * Soft, billowing smoke drawn on the GPU over whatever is behind it.
+ * - `density` 0..1: smoke rises from the bottom and fills the screen.
+ * - `clear` 0..1: the smoke thins and breaks apart until it's gone.
+ * Purely visual; the screen using it decides how density and clear change.
  */
 const SMOKE = Skia.RuntimeEffect.Make(`
 uniform float2 res;
@@ -34,186 +26,71 @@ float noise(float2 p) {
 float fbm(float2 p) {
   float v = 0.0;
   float a = 0.5;
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 5; i++) {
     v += a * noise(p);
-    p = p * 2.03 + float2(1.7, 9.2);
+    p = p * 2.0 + float2(3.1, 1.7);
     a *= 0.5;
   }
   return v;
 }
 
 half4 main(float2 xy) {
-  float2 uv = xy / res.y * 2.4;
-  // Smoke rises slowly, and gets carried up and away as it clears.
-  uv.y += t * 0.06 + clear * 1.2;
-  float2 q = float2(fbm(uv + float2(0.0, t * 0.10)), fbm(uv + float2(5.2, 1.3) - t * 0.07));
-  float2 r = float2(fbm(uv + 3.2 * q + float2(1.7, 9.2) + t * 0.13),
-                    fbm(uv + 3.2 * q + float2(8.3, 2.8) - t * 0.11));
-  float f = fbm(uv + 3.0 * r);
+  float2 uv = xy / res.y;
+  float up = 1.0 - xy.y / res.y; // 0 at the bottom, 1 at the top
 
-  float wisps = smoothstep(0.30 + clear * 0.55, 0.85, f);
-  float haze = (0.35 + 0.35 * f) * (1.0 - clear);
-  float a = clamp((wisps * 1.1 + haze) * density, 0.0, 1.0) * (1.0 - clear * clear);
+  // Two layers of slow, rising billows. A gentle warp makes them curl without looking liquid.
+  float2 p = uv * 2.2 + float2(t * 0.02, t * 0.07);
+  float b = fbm(p + 0.6 * fbm(p * 0.5 - float2(0.0, t * 0.05)));
+  float c = fbm(uv * 4.5 + float2(-t * 0.03, t * 0.12));
+  float n = 0.7 * b + 0.3 * c;
 
-  float3 dark = float3(0.36, 0.37, 0.39);
-  float3 light = float3(0.93, 0.93, 0.94);
-  float3 col = mix(dark, light, smoothstep(0.35, 0.95, f + length(r) * 0.25));
+  // Fill from the bottom up as density grows, with a soft, billowy edge.
+  float edge = density * 1.35 - 0.2;
+  float fill = smoothstep(edge - 0.25, edge + 0.05, up + (n - 0.5) * 0.35);
+  fill = 1.0 - fill;
+
+  // Mostly opaque, with lighter and thinner patches so it reads as smoke, not a sheet.
+  float a = fill * (0.62 + 0.33 * smoothstep(0.25, 0.75, n));
+
+  // Clearing: thin areas open up first, then the rest drifts apart.
+  float hole = smoothstep(clear * 1.25 - 0.2, clear * 1.25 + 0.05, n + up * 0.1);
+  a *= hole * (1.0 - clear * clear * 0.6);
+
+  float3 col = mix(float3(0.58, 0.59, 0.61), float3(0.86, 0.86, 0.87), smoothstep(0.3, 0.8, n));
   return half4(half3(col * a), half(a));
 }
 `)!;
 
-const GRID_X = 10;
-const GRID_Y = 18;
-
 export function Smoke({
-  touch = false,
-  wind,
   density,
-  clearAt = 0.7,
-  onCleared,
-  onProgress,
+  clear,
   style,
 }: {
-  touch?: boolean;
-  /** 0..1, e.g. microphone level while the user blows on the phone. */
-  wind?: SharedValue<number>;
-  /** 0..1 thickness, e.g. to thicken the smoke while they breathe in. */
-  density?: SharedValue<number>;
-  /** Fraction of the screen wiped before the rest clears on its own. */
-  clearAt?: number;
-  onCleared?: () => void;
-  onProgress?: (fraction: number) => void;
+  density: SharedValue<number>;
+  clear: SharedValue<number>;
   style?: StyleProp<ViewStyle>;
 }) {
   const [size, setSize] = useState({ w: 1, h: 1 });
   const still = useReducedMotion();
   const clock = useClock();
-  const clear = useSharedValue(0);
-  const done = useSharedValue(false);
-  const points = useSharedValue<number[]>([]);
-  const cells = useSharedValue<number[]>([]);
-  const reported = useSharedValue(0);
-
-  const cleared = () => onCleared?.();
-  const progress = (f: number) => onProgress?.(f);
-  const report = (f: number) => {
-    'worklet';
-    if (f <= reported.value) return;
-    reported.set(f);
-    scheduleOnRN(progress, f);
-  };
-
-  const finish = () => {
-    'worklet';
-    if (done.value) return;
-    done.set(true);
-    clear.set(withTiming(1, { duration: 1200, easing: Easing.out(Easing.cubic) }));
-    scheduleOnRN(cleared);
-  };
-
-  // Blowing thins the whole cloud a little on every reading.
-  useAnimatedReaction(
-    () => wind?.value ?? 0,
-    (w) => {
-      if (done.value || w <= 0.05) return;
-      const next = Math.min(1, clear.value + w * 0.04);
-      clear.set(next);
-      report(next);
-      if (next >= 0.55) finish();
-    },
-  );
-
-  const wipe = usePathValue((b) => {
-    'worklet';
-    const p = points.value;
-    let pen = false;
-    for (let i = 0; i < p.length; i += 2) {
-      if (Number.isNaN(p[i])) {
-        pen = false;
-        continue;
-      }
-      if (pen) b.lineTo(p[i], p[i + 1]);
-      else {
-        b.moveTo(p[i], p[i + 1]);
-        b.lineTo(p[i] + 0.1, p[i + 1]);
-        pen = true;
-      }
-    }
-  });
 
   const uniforms = useDerivedValue(() => ({
     res: [size.w, size.h],
     t: still ? 0 : clock.value / 1000,
-    density: density ? density.value : 1,
+    density: density.value,
     clear: clear.value,
   }));
 
-  const touchAt = (x: number, y: number, start: boolean) => {
-    'worklet';
-    if (done.value) return;
-    points.modify((arr) => {
-      'worklet';
-      if (start && arr.length) arr.push(NaN, NaN);
-      arr.push(x, y);
-      return arr;
-    });
-    // Mark the grid cells under the finger to know how much has been wiped.
-    const cx = Math.floor((x / size.w) * GRID_X);
-    const cy = Math.floor((y / size.h) * GRID_Y);
-    let changed = false;
-    cells.modify((arr) => {
-      'worklet';
-      for (let dx = -1; dx <= 1; dx++) {
-        for (let dy = -1; dy <= 1; dy++) {
-          const gx = cx + dx;
-          const gy = cy + dy;
-          if (gx < 0 || gy < 0 || gx >= GRID_X || gy >= GRID_Y) continue;
-          const k = gy * GRID_X + gx;
-          if (!arr[k]) {
-            arr[k] = 1;
-            changed = true;
-          }
-        }
-      }
-      return arr;
-    });
-    if (changed) {
-      const frac = cells.value.reduce((n, v) => n + (v ? 1 : 0), 0) / (GRID_X * GRID_Y);
-      report(frac);
-      if (frac >= clearAt) finish();
-    }
-  };
-
-  const pan = Gesture.Pan()
-    .minDistance(0)
-    .enabled(touch)
-    .onBegin((e) => touchAt(e.x, e.y, true))
-    .onUpdate((e) => touchAt(e.x, e.y, false));
-
   return (
-    <GestureDetector gesture={pan}>
-      <View
-        style={[StyleSheet.absoluteFill, style]}
-        pointerEvents={touch ? 'auto' : 'none'}
-        onLayout={(e) => setSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
-        <Canvas style={StyleSheet.absoluteFill}>
-          <Group layer>
-            <Fill>
-              <Shader source={SMOKE} uniforms={uniforms} />
-            </Fill>
-            <Path
-              path={wipe}
-              style="stroke"
-              strokeWidth={Math.max(90, size.w * 0.28)}
-              strokeCap="round"
-              strokeJoin="round"
-              color="black"
-              blendMode="dstOut">
-              <BlurMask blur={26} style="normal" />
-            </Path>
-          </Group>
-        </Canvas>
-      </View>
-    </GestureDetector>
+    <View
+      pointerEvents="none"
+      style={[StyleSheet.absoluteFill, style]}
+      onLayout={(e) => setSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
+      <Canvas style={StyleSheet.absoluteFill}>
+        <Fill>
+          <Shader source={SMOKE} uniforms={uniforms} />
+        </Fill>
+      </Canvas>
+    </View>
   );
 }

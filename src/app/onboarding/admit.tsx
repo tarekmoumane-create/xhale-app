@@ -43,7 +43,7 @@ export default function Admit() {
             disabled={!all}
             onDone={() => {
               track('committed');
-              router.push('/onboarding/paywall');
+              router.push('/onboarding/pledge');
             }}
           />
           <Caption center>Only you see this.</Caption>

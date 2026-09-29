@@ -23,19 +23,19 @@ export default function Pledge() {
 
   return (
     <Screen
-      header={<StepHeader progress={0.9} back={false} />}
+      header={<StepHeader progress={0.9} />}
       footer={
         <Button
           title={signed ? 'I’m in' : 'Sign to continue'}
           disabled={!signed}
           onPress={() => {
             setState({ signed: true });
-            router.push('/onboarding/notify');
+            router.push('/onboarding/paywall');
           }}
         />
       }>
       <Enter i={0} style={{ gap: 10 }}>
-        <Eyebrow style={{ color: Colors.accent }}>You’re in. One last thing.</Eyebrow>
+        <Eyebrow style={{ color: Colors.accent }}>Make it official</Eyebrow>
         <Title>Make a promise to yourself.</Title>
       </Enter>
 

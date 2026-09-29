@@ -1,8 +1,7 @@
-import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import Animated, { Easing, FadeIn, FadeOut, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, Caption } from '@/components/ui';
@@ -10,8 +9,16 @@ import { Smoke } from '@/components/smoke';
 import { Colors, Fonts } from '@/constants/theme';
 
 export default function Welcome() {
-  const [started, setStarted] = useState(false);
-  const [clear, setClear] = useState(false);
+  // The screen opens full of smoke, which drifts away as you take a slow breath out.
+  const density = useSharedValue(1);
+  const clear = useSharedValue(0);
+  const [cleared, setCleared] = useState(false);
+
+  useEffect(() => {
+    clear.set(withDelay(900, withTiming(1, { duration: 5000, easing: Easing.inOut(Easing.sin) })));
+    const id = setTimeout(() => setCleared(true), 5900);
+    return () => clearTimeout(id);
+  }, [clear]);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -25,25 +32,18 @@ export default function Welcome() {
           <Text style={styles.lede}>Quit smoking, vaping or weed. No lectures. No shame.</Text>
         </View>
 
-        <Smoke
-          touch
-          onProgress={(f) => f > 0 && setStarted(true)}
-          onCleared={() => {
-            setClear(true);
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          }}
-        />
+        <Smoke density={density} clear={clear} />
 
         <View pointerEvents="none" style={styles.hintWrap}>
-          {!started ? (
-            <Animated.Text exiting={FadeOut.duration(250)} style={styles.hint}>
-              Swipe the smoke away
+          {!cleared ? (
+            <Animated.Text exiting={FadeOut.duration(400)} style={styles.hint}>
+              Take a slow breath out
             </Animated.Text>
-          ) : clear ? (
-            <Animated.Text entering={FadeIn.duration(600)} style={styles.hint}>
+          ) : (
+            <Animated.Text entering={FadeIn.duration(800)} style={styles.hint}>
               That’s what clear feels like.
             </Animated.Text>
-          ) : null}
+          )}
         </View>
       </View>
 

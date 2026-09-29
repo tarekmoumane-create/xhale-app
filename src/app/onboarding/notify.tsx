@@ -40,7 +40,7 @@ export default function Notify() {
 
   return (
     <Screen
-      header={<StepHeader progress={0.94} />}
+      header={<StepHeader progress={0.97} back={false} />}
       footer={
         <>
           <Button title="Turn on check-ins" loading={busy} onPress={enable} />

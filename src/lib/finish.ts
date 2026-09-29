@@ -6,13 +6,13 @@ import { getState, setState } from '@/lib/store';
 import { starterPlan } from '@/lib/tools';
 
 /**
- * Called after a successful purchase. New users still have the pledge and check-ins to do;
+ * Called after a successful purchase. New users still have their check-in times to set;
  * someone renewing a lapsed subscription goes straight back into the app.
  */
 export function unlock() {
   if (getState().onboarded) return finishOnboarding();
   setState({ pro: true });
-  router.replace('/onboarding/pledge');
+  router.replace('/onboarding/notify');
 }
 
 /** Called at the end of onboarding: open the app and start the clock. */

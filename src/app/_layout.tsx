@@ -83,7 +83,10 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.bg } }}>
         <Stack.Protected guard={inApp}>
           <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="sos" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
+          <Stack.Screen
+            name="sos"
+            options={{ presentation: 'transparentModal', animation: 'fade', contentStyle: { backgroundColor: 'transparent' } }}
+          />
           <Stack.Screen name="slip" options={{ presentation: 'modal' }} />
           <Stack.Screen name="pledge-today" options={{ presentation: 'modal' }} />
         </Stack.Protected>
