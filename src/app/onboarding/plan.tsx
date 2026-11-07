@@ -27,15 +27,16 @@ export default function PlanScreen() {
   const substances = useStore((s) => s.substances);
   const habits = useStore((s) => s.habits);
   const modes = useStore((s) => s.modes);
+  const name = useStore((s) => s.name);
   const cost = yearlyCost(habits, substances);
   const shown = useCountUp(cost.total);
 
   return (
     <Screen
-      header={<StepHeader progress={0.8} />}
-      footer={<Button title="Lock in my plan" onPress={() => router.push('/onboarding/admit')} />}>
+      header={<StepHeader progress={0.82} />}
+      footer={<Button title="Lock in my plan" onPress={() => router.push('/onboarding/pledge')} />}>
       <Enter i={0} style={{ gap: 6 }}>
-        <Eyebrow>Every year, this costs you</Eyebrow>
+        <Eyebrow>{name ? `${name}, every year this costs you` : 'Every year, this costs you'}</Eyebrow>
         <Text style={styles.big} accessibilityLabel={money(cost.total)}>
           {money(shown)}
         </Text>
@@ -65,7 +66,7 @@ export default function PlanScreen() {
 
       <Enter i={2}>
         <Card style={{ gap: 4 }}>
-          <Eyebrow style={{ paddingBottom: 6 }}>How you’ll quit</Eyebrow>
+          <Eyebrow style={{ paddingBottom: 6 }}>{name ? `${name}’s plan` : 'How you’ll quit'}</Eyebrow>
           {substances.map((s, i) => {
             const m = SubstanceMeta[s];
             const mode = modes[s];

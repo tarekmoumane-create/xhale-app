@@ -26,12 +26,12 @@ export default function Symptoms() {
 
   return (
     <Screen
-      header={<StepHeader progress={0.6} />}
+      header={<StepHeader progress={0.66} />}
       footer={
         <Button
           title={picked.length ? `Track ${picked.length === 1 ? 'this' : `these ${picked.length}`}` : 'Skip for now'}
           tone={picked.length ? 'primary' : 'secondary'}
-          onPress={() => router.push('/onboarding/science')}
+          onPress={() => router.push('/onboarding/habits')}
         />
       }>
       <Enter i={0} style={{ gap: 10 }}>

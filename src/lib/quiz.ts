@@ -1,12 +1,12 @@
 import type { Substance } from '@/constants/theme';
 
 /**
- * The onboarding quiz is up to 11 slides: questions, plus reflection slides that
- * mirror answers back, and an open question asking why they want to stop.
+ * The onboarding quiz is 7–10 slides depending on what they're quitting: questions, plus
+ * reflection slides that mirror answers back, and an open question asking why they want to stop.
  * - Nicotine: Heaviness of Smoking Index (time to first use + amount per day, 0–6),
  *   worded for vaping when needed (an adaptation for vapers).
- * - Weed: two frequency items (0–8): losing control once started (from CUDIT-R) and
- *   faking sobriety around people. Not a validated scale; the results screen says it's a screening.
+ * - Weed: one frequency item (0–4): losing control once started (from CUDIT-R).
+ *   Not a validated scale; the results screen says it's a screening.
  */
 
 export type Answers = Record<string, number | number[]>;
@@ -44,8 +44,6 @@ export type TextSlide = {
   suggestions: string[];
 };
 export type Slide = ChoiceSlide | MultiSlide | SliderSlide | ReflectionSlide | TextSlide;
-
-export const QUIZ_LENGTH = 11;
 
 const FREQ = ['Never', 'Less than once a month', 'About once a month', 'Most weeks', 'Most days'];
 const freq = () => FREQ.map((label, points) => ({ label, points }));
@@ -98,7 +96,7 @@ function thingFor(subs: Substance[]) {
   return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
 }
 
-export function buildQuiz(subs: Substance[]): Slide[] {
+export function buildQuiz(subs: Substance[], name = ''): Slide[] {
   const nicotine = subs.includes('cig') || subs.includes('vape');
   const weed = subs.includes('weed');
   const w = nicotineWords(subs);
@@ -176,13 +174,6 @@ export function buildQuiz(subs: Substance[]): Slide[] {
     title: 'How often did you keep going after you meant to stop?',
     options: freq(),
   };
-  const wHide: ChoiceSlide = {
-    kind: 'choice',
-    id: 'w_hide',
-    eyebrow: 'Weed · last 6 months',
-    title: 'How often do you find yourself faking sobriety around friends or loved ones?',
-    options: freq(),
-  };
 
   const sounds: MultiSlide = {
     kind: 'multi',
@@ -214,19 +205,6 @@ export function buildQuiz(subs: Substance[]): Slide[] {
           : `You said you ${x}. It’s been doing a job for you. Your plan hands that job to something better.`,
       };
     },
-  };
-
-  const after: ChoiceSlide = {
-    kind: 'choice',
-    id: 'after',
-    eyebrow: 'Right after',
-    title: 'How do you usually feel just after you use?',
-    options: [
-      { label: 'Relief, but it fades fast', points: 0 },
-      { label: 'Fine, nothing special', points: 0 },
-      { label: 'Annoyed at myself', points: 0 },
-      { label: 'Honestly, a bit worse', points: 0 },
-    ],
   };
 
   const tries: ChoiceSlide = {
@@ -263,48 +241,16 @@ export function buildQuiz(subs: Substance[]): Slide[] {
     kind: 'text',
     id: 'why',
     eyebrow: 'Your why',
-    title: 'Why do you want to stop?',
+    title: name ? `${name}, why do you want to stop?` : 'Why do you want to stop?',
     sub: 'In your own words. We’ll show you this every morning when you make your pledge.',
     placeholder: 'I want to stop because…',
     suggestions: WHY_SUGGESTIONS,
   };
 
-  const ready: SliderSlide = {
-    kind: 'slider',
-    id: 'ready',
-    eyebrow: 'Last one',
-    title: 'How ready do you feel, honestly?',
-    min: 1,
-    max: 10,
-    step: 1,
-    initial: 6,
-    display: (v) => `${v}/10`,
-    caption: (v) =>
-      v <= 4
-        ? 'That’s okay. You don’t have to feel ready to start. You just have to start.'
-        : v <= 7
-          ? 'Somewhere in the middle is where most people begin.'
-          : 'Good. Let’s put that to work.',
-  };
-
-  const core: Slide[] = [];
-  if (nicotine) core.push(wake, amount);
-  if (weed) core.push(wStop, wHide);
-  const tail: Slide[] = [sounds, heard, tries, triesReflect, why, ready];
-
-  // Optional slides fill the quiz up to exactly QUIZ_LENGTH, in this priority order.
-  const optional: Slide[] = [years, ...(nicotine ? [body] : []), after];
-  let room = QUIZ_LENGTH - core.length - tail.length;
-  const extra = optional.filter(() => room-- > 0);
-
-  const slides: Slide[] = [];
-  if (extra.includes(years)) slides.push(years);
-  slides.push(...core.filter((x) => x.id.startsWith('n_')));
-  if (extra.includes(body)) slides.push(body);
-  slides.push(...core.filter((x) => x.id.startsWith('w_')));
-  slides.push(sounds, heard);
-  if (extra.includes(after)) slides.push(after);
-  slides.push(tries, triesReflect, why, ready);
+  const slides: Slide[] = [years];
+  if (nicotine) slides.push(wake, amount, body);
+  if (weed) slides.push(wStop);
+  slides.push(sounds, heard, tries, triesReflect, why);
   return slides;
 }
 
@@ -346,8 +292,8 @@ export function scoreAnswers(subs: Substance[], a: Answers): ScoreResult[] {
     });
   }
   if (subs.includes('weed')) {
-    const score = num(a, 'w_stop') + num(a, 'w_hide');
-    const segment = score <= 1 ? 0 : score <= 4 ? 1 : 2;
+    const score = num(a, 'w_stop');
+    const segment = score <= 0 ? 0 : score <= 2 ? 1 : 2;
     out.push({
       key: 'weed',
       label: 'Weed use',

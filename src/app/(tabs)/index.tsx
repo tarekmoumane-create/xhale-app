@@ -48,9 +48,10 @@ const ALL_STEPS = [
 ];
 const STEPS = ALL_STEPS.filter((s) => COACH_ENABLED || s.href !== '/coach');
 
-function greeting(now: number) {
+function greeting(now: number, name: string) {
   const h = new Date(now).getHours();
-  return h < 5 ? 'Still up?' : h < 12 ? 'Good morning.' : h < 18 ? 'Good afternoon.' : 'Good evening.';
+  const g = h < 5 ? 'Still up' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  return name ? `${g}, ${name}${h < 5 ? '?' : '.'}` : `${g}${h < 5 ? '?' : '.'}`;
 }
 
 function nextMilestone(s: Substance, since: number, now: number) {
@@ -100,6 +101,7 @@ const LOG_STEP: Record<Substance, number> = { cig: 1, vape: 10, weed: 1 };
 
 export default function Today() {
   const state = useStore((s) => s);
+  const name = state.name;
   const now = useNow(30_000);
   const rows = buildRows(state, now);
   const starts = state.substances.map((s) => streakStart(state, s, now)).filter((x): x is number => x !== null);
@@ -119,7 +121,7 @@ export default function Today() {
       <Screen edges={['top']} contentStyle={{ paddingBottom: 150 }}>
         <Enter i={0} style={{ gap: 4, paddingTop: 6 }}>
           <Eyebrow>{new Date(now).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</Eyebrow>
-          <Title>{greeting(now)}</Title>
+          <Title>{greeting(now, name)}</Title>
         </Enter>
 
         <Enter i={1}>

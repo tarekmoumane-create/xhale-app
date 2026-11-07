@@ -29,6 +29,8 @@ export type State = {
   symptoms: string[];
   habits: Habits;
   modes: Record<Substance, QuitMode>;
+  /** What they asked to be called, from the first onboarding step. Empty if they skipped. */
+  name: string;
   why: string;
   signed: boolean;
   /** Days (dayKey) the user ticked their morning pledge. */
@@ -66,6 +68,7 @@ export const initialState: State = {
     weedWhen: [],
   },
   modes: { cig: 'taper', vape: 'taper', weed: 'cold' },
+  name: '',
   why: '',
   signed: false,
   pledges: [],

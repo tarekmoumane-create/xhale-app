@@ -5,6 +5,8 @@ import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { SignaturePad } from '@/components/signature-pad';
 import { Button, Caption, Card, Enter, Eyebrow, LinkButton, Screen, StepHeader, Title } from '@/components/ui';
 import { Colors, Fonts } from '@/constants/theme';
+import { track } from '@/lib/analytics';
+import { money, yearlyCost } from '@/lib/plan';
 import { setState, useStore } from '@/lib/store';
 
 function habitList(subs: string[]) {
@@ -16,6 +18,9 @@ function habitList(subs: string[]) {
 export default function Pledge() {
   const substances = useStore((s) => s.substances);
   const why = useStore((s) => s.why);
+  const name = useStore((s) => s.name);
+  const habits = useStore((s) => s.habits);
+  const cost = yearlyCost(habits, substances).total;
   const [points, setPoints] = useState(0);
   const [padKey, setPadKey] = useState(0);
   const signed = points >= 12;
@@ -29,6 +34,7 @@ export default function Pledge() {
           title={signed ? 'I’m in' : 'Sign to continue'}
           disabled={!signed}
           onPress={() => {
+            track('committed');
             setState({ signed: true });
             router.push('/onboarding/paywall');
           }}
@@ -36,14 +42,17 @@ export default function Pledge() {
       }>
       <Enter i={0} style={{ gap: 10 }}>
         <Eyebrow style={{ color: Colors.accent }}>Make it official</Eyebrow>
-        <Title>Make a promise to yourself.</Title>
+        <Title>{name ? `${name}, make a promise to yourself.` : 'Make a promise to yourself.'}</Title>
       </Enter>
 
       <Enter i={1}>
         <Card style={{ gap: 14, padding: 20 }}>
           <Text style={styles.pledge}>
-            From today, {today}, I’m done letting {habitList(substances)} run my days.
+            {name ? `I’m ${name}. ` : ''}From today, {today}, I’m done letting {habitList(substances)} run my days.
           </Text>
+          {cost > 0 ? (
+            <Text style={styles.pledge}>It’s been costing me {money(cost)} a year, and more than just money.</Text>
+          ) : null}
           <Text style={styles.pledge}>When a craving hits, I’ll ride it out. If I slip, I’ll get back on track the same day.</Text>
           <View style={styles.whyBox}>
             <Eyebrow>My why</Eyebrow>

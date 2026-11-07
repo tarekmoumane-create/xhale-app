@@ -48,9 +48,9 @@ export default function Welcome() {
       </View>
 
       <View style={styles.footer}>
-        <Button title="Get started" onPress={() => router.push('/onboarding/pick')} />
+        <Button title="Get started" onPress={() => router.push('/onboarding/name')} />
         <Caption center style={{ marginTop: 10 }}>
-          Takes about 4 minutes. Private by default.
+          Takes about 3 minutes. Private by default.
         </Caption>
       </View>
     </SafeAreaView>

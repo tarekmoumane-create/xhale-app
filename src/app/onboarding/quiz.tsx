@@ -8,14 +8,15 @@ import { Colors, Fonts } from '@/constants/theme';
 import { buildQuiz, type Answers, type Slide } from '@/lib/quiz';
 import { setState, useStore } from '@/lib/store';
 
-const START = 0.08;
-const SPAN = 0.42;
+const START = 0.12;
+const SPAN = 0.43;
 
 export default function Quiz() {
   const substances = useStore((s) => s.substances);
   const answers = useStore((s) => s.answers);
   const why = useStore((s) => s.why);
-  const slides = useMemo(() => buildQuiz(substances), [substances]);
+  const name = useStore((s) => s.name);
+  const slides = useMemo(() => buildQuiz(substances, name), [substances, name]);
   const [i, setI] = useState(0);
   const slide = slides[i];
 

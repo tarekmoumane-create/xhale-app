@@ -13,6 +13,7 @@ export default function Score() {
   const substances = useStore((s) => s.substances);
   const answers = useStore((s) => s.answers);
   const why = useStore((s) => s.why);
+  const name = useStore((s) => s.name);
   const scores = useMemo(() => scoreAnswers(substances, answers), [substances, answers]);
   const [analyzing, setAnalyzing] = useState(true);
   const [pct, setPct] = useState(0);
@@ -42,11 +43,11 @@ export default function Score() {
 
   return (
     <Screen
-      header={<StepHeader progress={0.55} />}
+      header={<StepHeader progress={0.6} />}
       footer={<Button title="Continue" onPress={() => router.push('/onboarding/symptoms')} />}>
       <Enter i={0} style={{ gap: 10 }}>
-        <Eyebrow>Your results</Eyebrow>
-        <Title>{heavy ? <>Here’s the honest picture.</> : <>You’re catching this early.</>}</Title>
+        <Eyebrow>{name ? `${name}’s results` : 'Your results'}</Eyebrow>
+        <Title>{heavy ? 'Here’s the honest picture.' : 'You’re catching this early.'}</Title>
       </Enter>
 
       {scores.map((s, i) => (

@@ -7,6 +7,7 @@ import { setState, useStore } from '@/lib/store';
 
 export default function Pick() {
   const selected = useStore((s) => s.substances);
+  const name = useStore((s) => s.name);
 
   const toggle = (s: Substance) =>
     setState((st) => ({
@@ -18,7 +19,7 @@ export default function Pick() {
 
   return (
     <Screen
-      header={<StepHeader progress={0.05} />}
+      header={<StepHeader progress={0.08} />}
       footer={
         <Button
           title={selected.length ? 'Continue' : 'Choose at least one'}
@@ -27,7 +28,7 @@ export default function Pick() {
         />
       }>
       <Enter i={0} style={{ gap: 10 }}>
-        <Title>What do you want to be free of?</Title>
+        <Title>{name ? `${name}, what do you want to be free of?` : 'What do you want to be free of?'}</Title>
         <Body>Pick all that apply.</Body>
       </Enter>
       <View style={{ gap: 10 }}>

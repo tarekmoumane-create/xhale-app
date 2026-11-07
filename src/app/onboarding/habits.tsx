@@ -40,7 +40,7 @@ export default function HabitsScreen() {
 
   return (
     <Screen
-      header={<StepHeader progress={0.72} />}
+      header={<StepHeader progress={0.74} />}
       footer={<Button title="Calculate my cost" onPress={() => router.push('/onboarding/plan')} />}>
       <Enter i={0} style={{ gap: 10 }}>
         <Title>What does a normal week look like?</Title>

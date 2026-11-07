@@ -20,6 +20,7 @@ export default function Paywall() {
   const habits = useStore((s) => s.habits);
   const modes = useStore((s) => s.modes);
   const why = useStore((s) => s.why);
+  const name = useStore((s) => s.name);
   const [plan, setPlan] = useState<Exclude<PlanId, 'exit'>>('annual');
   const [prices, setPrices] = useState(FALLBACK_PRICES);
   const [busy, setBusy] = useState(false);
@@ -91,7 +92,7 @@ export default function Paywall() {
         </>
       }>
       <Enter i={0} style={{ gap: 10 }}>
-        <Eyebrow style={{ color: Colors.accent }}>Your plan is ready</Eyebrow>
+        <Eyebrow style={{ color: Colors.accent }}>{name ? `${name}, your plan is ready` : 'Your plan is ready'}</Eyebrow>
         <Title>Your way out starts today.</Title>
         {payoff ? (
           <Caption style={{ fontSize: 14, lineHeight: 20, color: Colors.text2 }}>
