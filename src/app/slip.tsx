@@ -7,7 +7,6 @@ import { Body, Button, Caption, Card, Chip, Enter, Eyebrow, Screen, Title, ui } 
 import { Colors, Fonts, SubstanceMeta, type Substance } from '@/constants/theme';
 import { cleanDays, money, moneySaved, streakStart } from '@/lib/plan';
 import { track } from '@/lib/analytics';
-import { scheduleNudges } from '@/lib/notifications';
 import { getState, setState, useStore } from '@/lib/store';
 import { toolById, triggerLabel, type ToolId, type TriggerId } from '@/lib/tools';
 
@@ -38,7 +37,6 @@ export default function Slip() {
       triggerPlans: t && tool ? [...st.triggerPlans.filter((p) => p.trigger !== t.id), { trigger: t.id, tool: tool.id }] : st.triggerPlans,
     }));
     track('slip_logged');
-    scheduleNudges(getState()).catch(() => {});
     router.back();
   };
 

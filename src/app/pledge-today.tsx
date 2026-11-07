@@ -16,7 +16,7 @@ function habitList(state: State) {
   return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 }
 
-/** The morning pledge: re-read your why, tick one box. Opened from the morning notification or the Today card. */
+/** The morning pledge: re-read your why, tick one box. Opened from the Today card. */
 export default function PledgeToday() {
   const state = useStore((s) => s);
   const [now] = useState(() => Date.now());

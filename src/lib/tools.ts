@@ -38,7 +38,7 @@ export const TOOLS: Tool[] = [
   {
     id: 'delay',
     title: 'Wait 10 minutes',
-    how: 'Start a 10-minute timer and tell yourself you’ll decide after. Most cravings pass before it goes off.',
+    how: 'Start a 10-minute timer and tell yourself you’ll decide after. Most cravings pass before it ends.',
     icon: 'timer',
     android: 'timer',
     action: 'timer',

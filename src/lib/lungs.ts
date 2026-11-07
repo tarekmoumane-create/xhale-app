@@ -261,7 +261,7 @@ export type LungFact = {
 };
 
 /**
- * Specific facts shown after blowing the smoke away in SOS and in notifications.
+ * Specific facts shown after blowing the smoke away in SOS.
  * `from`/`to` limit a fact to a range of clean days so it fits where the user is.
  */
 export const LUNG_FACTS: LungFact[] = [

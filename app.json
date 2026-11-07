@@ -50,6 +50,13 @@
           "imageWidth": 180
         }
       ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Blow on your phone during a craving to clear the smoke. Audio is never recorded or saved.",
+          "enableBackgroundPlayback": false
+        }
+      ],
       "expo-notifications",
       "expo-asset",
       "expo-localization"

@@ -37,7 +37,6 @@ export type State = {
   onboarded: boolean;
   pro: boolean;
   offerSeen: boolean;
-  notifHour: number;
   logs: UseLog[];
   slips: Slip[];
   cravings: Craving[];
@@ -74,7 +73,6 @@ export const initialState: State = {
   onboarded: false,
   pro: false,
   offerSeen: false,
-  notifHour: 15,
   logs: [],
   slips: [],
   cravings: [],

@@ -34,7 +34,7 @@ The app calls `${EXPO_PUBLIC_COACH_URL}/coach`, so set it to `https://<your-doma
 ```
 src/app/
   _layout.tsx          Root stack. Onboarding until onboarded + subscribed, then the app.
-  onboarding/          pick → quiz → score → symptoms → science → habits → plan → paywall (→ offer) → pledge → notify
+  onboarding/          pick → quiz → score → symptoms → science → habits → plan → paywall (→ offer) → pledge
   (tabs)/              Today · Plan · Coach · Recovery (native tabs)
   sos.tsx              Craving SOS: front camera, fog you blow away (mic level), 5-minute craving wave
   slip.tsx             No-shame slip logging. Streak restarts, total clean days are kept.
@@ -43,7 +43,7 @@ src/lib/
   quiz.ts              Fagerström (nicotine) and CUDIT-R (weed) questions and scoring
   plan.ts              Costs, taper limits, streaks, clean days, milestones
   purchases.ts         RevenueCat wrapper (simulated without keys)
-  notifications.ts     Daily check-ins before the user's craving window
+  notifications.ts     Clears notifications queued by older versions; Xhale sends none
   coach.ts             Coach client plus client-side crisis detection
 web/api/coach.js       Coach API (Claude) on Vercel: crisis guardrails, rate limits, subscription check
 web/public/            Home page, privacy policy, terms

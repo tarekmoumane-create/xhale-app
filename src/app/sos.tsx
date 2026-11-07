@@ -1,6 +1,7 @@
+import { RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync, useAudioRecorder } from 'expo-audio';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, FadeIn, FadeInDown, FadeOut, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,13 +19,19 @@ import { getState, setState } from '@/lib/store';
 
 /*
  * Three calm, natural breaths: in for 4, out for 6 (about six breaths a minute, a pace known to
- * settle the nervous system). Nothing to blow at and no counting. Each breath out drifts a third of
- * the smoke away in time with it. Short on purpose: longer or forced breathing can make people light-headed.
+ * settle the nervous system). On each breath out you can blow on the phone and the mic pushes the
+ * smoke away; a blow clears faster, and without one it thins slowly so nobody gets stuck. Without mic
+ * access the smoke drifts away in time with the breath. The mic only reads loudness, live: nothing
+ * is recorded. Short and slow on purpose: longer or forced breathing can make people light-headed.
  */
 const FILL_MS = 2000;
 const IN_MS = 4000;
 const OUT_MS = 6000;
 const BREATHS = 3;
+const TICK_MS = 100;
+// A blow counts when the mic is this many dB above the room's quiet level.
+const BLOW_ABOVE_DB = 7;
+const SILENT_DB = -160;
 
 type Phase = 'fill' | 'in' | 'out' | 'clear';
 
@@ -36,6 +43,12 @@ export default function SOS() {
   const clear = useSharedValue(0);
   const shade = useSharedValue(0);
   const orb = useSharedValue(0.84);
+  const [micOn, setMicOn] = useState(false);
+  const [hearing, setHearing] = useState(false);
+  const micRef = useRef(false);
+  const levelRef = useRef(SILENT_DB);
+  const recorder = useAudioRecorder({ ...RecordingPresets.LOW_QUALITY, isMeteringEnabled: true });
+  const listening = phase !== 'clear';
 
   const me = useMemo(() => {
     const s = getState();
@@ -58,17 +71,59 @@ export default function SOS() {
     track('sos_opened');
   }, []);
 
-  // The session: the smoke rolls in, then three slow breaths each drift a third of it away.
+  // Listen for blowing only while there's smoke on screen. Loudness only; nothing is recorded.
+  useEffect(() => {
+    if (!listening) return;
+    let active = true;
+    let started = false;
+    (async () => {
+      try {
+        const { granted } = await requestRecordingPermissionsAsync();
+        if (!granted || !active) return;
+        await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+        await recorder.prepareToRecordAsync();
+        if (!active) return;
+        recorder.record();
+        started = true;
+        micRef.current = true;
+        setMicOn(true);
+      } catch {
+        micRef.current = false;
+        setMicOn(false);
+      }
+    })();
+    const id = setInterval(() => {
+      try {
+        if (started && recorder.isRecording) levelRef.current = recorder.getStatus().metering ?? SILENT_DB;
+      } catch {}
+    }, TICK_MS);
+    return () => {
+      active = false;
+      clearInterval(id);
+      micRef.current = false;
+      levelRef.current = SILENT_DB;
+      setMicOn(false);
+      try {
+        if (started) recorder.stop().catch(() => {});
+      } catch {}
+      setAudioModeAsync({ allowsRecording: false }).catch(() => {});
+    };
+  }, [listening, recorder]);
+
+  // The session: the smoke rolls in, then three slow breaths each clear a third of it.
   useEffect(() => {
     let cancelled = false;
     const timers: ReturnType<typeof setTimeout>[] = [];
     const wait = (ms: number) => new Promise<void>((r) => timers.push(setTimeout(r, ms)));
     const calm = Easing.inOut(Easing.sin);
     // Count down one number per second, e.g. 4-3-2-1, while a breath runs.
-    const countDown = async (ms: number) => {
+    const countDown = async (ms: number, onTick: () => void) => {
       for (let s = ms / 1000; s > 0 && !cancelled; s--) {
         setCount(s);
-        await wait(1000);
+        for (let k = 0; k < 1000 / TICK_MS && !cancelled; k++) {
+          onTick();
+          await wait(TICK_MS);
+        }
       }
     };
 
@@ -81,24 +136,39 @@ export default function SOS() {
       density.set(withTiming(1, { duration: FILL_MS, easing: Easing.out(Easing.cubic) }));
       await wait(FILL_MS);
 
+      let cleared = 0;
       for (let b = 1; b <= BREATHS && !cancelled; b++) {
         setPhase('in');
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
         orb.set(withTiming(1.08, { duration: IN_MS, easing: calm }));
-        await countDown(IN_MS);
+        // The room's quiet level is measured on the breath in, to judge the blow that follows.
+        const room: number[] = [];
+        await countDown(IN_MS, () => {
+          if (levelRef.current > SILENT_DB) room.push(levelRef.current);
+        });
         if (cancelled) return;
+        const quiet = room.length ? room.sort((x, y) => x - y)[Math.floor(room.length / 2)] : null;
 
         setPhase('out');
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
         orb.set(withTiming(0.84, { duration: OUT_MS, easing: calm }));
-        clear.set(withTiming(b / BREATHS, { duration: OUT_MS, easing: calm }));
-        await countDown(OUT_MS);
+        const target = b / BREATHS;
+        const step = 1 / BREATHS / (OUT_MS / TICK_MS);
+        await countDown(OUT_MS, () => {
+          const judged = micRef.current && quiet !== null;
+          const blowing = judged && levelRef.current > quiet + BLOW_ABOVE_DB;
+          if (blowing) setHearing(true);
+          cleared = Math.min(target, cleared + step * (!judged ? 1 : blowing ? 2.5 : 0.25));
+          clear.set(withTiming(cleared, { duration: TICK_MS }));
+        });
+        setHearing(false);
       }
       if (cancelled) return;
 
+      track('sos_cleared', { mic: micRef.current });
       setPhase('clear');
+      clear.set(withTiming(1, { duration: 900 }));
       shade.set(withTiming(1, { duration: 900 }));
-      track('sos_cleared');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     })();
 
@@ -129,7 +199,15 @@ export default function SOS() {
             />
             <View style={styles.pill}>
               <Animated.Text key={phase} entering={FadeIn.duration(700)} exiting={FadeOut.duration(400)} style={styles.cueBig}>
-                {phase === 'fill' ? 'Three slow breaths with me' : phase === 'in' ? 'Breathe in' : 'Now slowly out'}
+                {phase === 'fill'
+                  ? 'Three slow breaths with me'
+                  : phase === 'in'
+                    ? 'Breathe in'
+                    : !micOn
+                      ? 'Now slowly out'
+                      : hearing
+                        ? 'That’s it, nice and slow'
+                        : 'Slowly blow it away'}
               </Animated.Text>
             </View>
           </View>

@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
@@ -9,16 +9,33 @@ import { Body, Caption, Card, Chip, Enter, Eyebrow, Icon, LinkButton, Screen, Ta
 import { Colors, Fonts } from '@/constants/theme';
 import { useNow } from '@/hooks/use-now';
 import { track } from '@/lib/analytics';
-import { startDelayTimer } from '@/lib/notifications';
 import { dayKey } from '@/lib/plan';
 import { setState, useStore } from '@/lib/store';
 import { toolById, toolsFor, TRIGGERS, triggerLabel, type Tool, type ToolId, type TriggerId } from '@/lib/tools';
 
 const BUCKETS = 12; // two-hour buckets
 const LABELS = ['12a', '2a', '4a', '6a', '8a', '10a', '12p', '2p', '4p', '6p', '8p', '10p'];
+const DELAY_MS = 10 * 60_000;
+const delayEnd = () => Date.now() + DELAY_MS;
 
 /** Choosing a trigger, then the tool for it. `trigger` set means we're picking the tool. */
 type Editing = { trigger?: TriggerId } | null;
+
+/** The "Wait 10 minutes" countdown. It lives on this screen; Xhale never sends a notification. */
+function DelayCountdown({ end }: { end: number }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const left = Math.ceil((end - now) / 1000);
+  const clock = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
+  return (
+    <Caption style={{ color: Colors.text2, lineHeight: 18, fontVariant: ['tabular-nums'] }}>
+      {left > 0 ? `${clock} left. Decide when it’s up.` : 'Time’s up. How’s the craving now? If it’s still there, try another tool.'}
+    </Caption>
+  );
+}
 
 export default function PlanTab() {
   const substances = useStore((s) => s.substances);
@@ -26,7 +43,7 @@ export default function PlanTab() {
   const toolsUsed = useStore((s) => s.toolsUsed);
   const cravings = useStore((s) => s.cravings);
   const [editing, setEditing] = useState<Editing>(null);
-  const [timerSet, setTimerSet] = useState(false);
+  const [timerEnd, setTimerEnd] = useState<number | null>(null);
   const now = useNow();
   const today = dayKey(now);
   const tools = toolsFor(substances);
@@ -48,14 +65,14 @@ export default function PlanTab() {
     });
   };
 
-  const runTool = async (t: Tool) => {
+  const runTool = (t: Tool) => {
     track('tool_used', { tool: t.id });
     setState((st) => ({ toolsUsed: { ...st.toolsUsed, [t.id]: today } }));
     if (t.action === 'sos') router.push('/sos');
     else if (t.action === 'why') router.push('/pledge-today');
     else if (t.action === 'text')
       Linking.openURL(`sms:&body=${encodeURIComponent('Having a rough craving right now. Could you talk for 5 minutes?')}`);
-    else if (t.action === 'timer') setTimerSet(await startDelayTimer(10));
+    else if (t.action === 'timer') setTimerEnd(delayEnd());
   };
 
   const savePlan = (trigger: TriggerId, tool: ToolId) => {
@@ -168,9 +185,11 @@ export default function PlanTab() {
                 </View>
                 <View style={{ flex: 1, gap: 3 }}>
                   <Text style={styles.toolTitle}>{t.title}</Text>
-                  <Caption style={{ color: Colors.text2, lineHeight: 18 }}>
-                    {t.action === 'timer' && timerSet ? 'Timer running. We’ll check in when 10 minutes are up.' : t.how}
-                  </Caption>
+                  {t.action === 'timer' && timerEnd ? (
+                    <DelayCountdown end={timerEnd} />
+                  ) : (
+                    <Caption style={{ color: Colors.text2, lineHeight: 18 }}>{t.how}</Caption>
+                  )}
                 </View>
                 {label ? (
                   <Tap accessibilityRole="button" onPress={() => runTool(t)} style={styles.go}>
