@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Linking, StyleSheet, Text, View } from 'react-native';
 
 import { BreathOrb } from '@/components/breath';
 import { Body, Button, Caption, Enter, Eyebrow, IconButton, LinkButton, Screen, Title } from '@/components/ui';
+import { PRIVACY_URL, TERMS_URL } from '@/lib/links';
 import { Colors, Fonts } from '@/constants/theme';
 import { track } from '@/lib/analytics';
 import { unlock } from '@/lib/finish';
@@ -46,12 +47,17 @@ export default function Offer() {
       }
       footer={
         <>
-          <Button title={`Claim for ${price}`} tone="accent" loading={busy} onPress={claim} />
+          <Button title={`Subscribe for ${price} first year`} tone="accent" loading={busy} onPress={claim} />
           {error ? (
             <Caption center style={{ color: Colors.danger }}>
               {error}
             </Caption>
           ) : null}
+          <Caption center>Xhale Yearly: {price} for the first year, then $49/year. Renews yearly. Cancel anytime in Settings.</Caption>
+          <View style={styles.legal}>
+            <LinkButton title="Terms" color={Colors.text3} onPress={() => Linking.openURL(TERMS_URL)} />
+            <LinkButton title="Privacy" color={Colors.text3} onPress={() => Linking.openURL(PRIVACY_URL)} />
+          </View>
           <LinkButton title="No thanks, go back" onPress={() => router.back()} />
         </>
       }>
@@ -59,15 +65,15 @@ export default function Offer() {
         <BreathOrb size={150} />
       </View>
       <Enter i={0} style={{ gap: 12 }}>
-        <Eyebrow style={{ color: Colors.accent }}>A one-time offer</Eyebrow>
+        <Eyebrow style={{ color: Colors.accent }}>Introductory offer</Eyebrow>
         <Title style={{ fontSize: 36, lineHeight: 40 }}>Your first year for {price}.</Title>
-        <Body>This price won’t come back.</Body>
+        <Body>The yearly plan at an introductory price. Shown once; it won’t come back.</Body>
       </Enter>
       <Enter i={1}>
         <View style={styles.priceCard}>
           <Text style={styles.was}>$49</Text>
           <Text style={styles.now}>{price}</Text>
-          <Caption style={{ color: Colors.text2 }}>for your first year, then $49/year</Caption>
+          <Caption style={{ color: Colors.text2 }}>first year of Xhale Yearly, then $49/year</Caption>
         </View>
       </Enter>
     </Screen>
@@ -76,6 +82,7 @@ export default function Offer() {
 
 const styles = StyleSheet.create({
   orb: { alignItems: 'center', paddingVertical: 10 },
+  legal: { flexDirection: 'row', justifyContent: 'center', gap: 20 },
   priceCard: {
     alignItems: 'center',
     gap: 2,
