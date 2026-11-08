@@ -13,6 +13,7 @@ import { Button, Caption, IconButton, LinkButton, Tap } from '@/components/ui';
 import { Colors, Fonts } from '@/constants/theme';
 import { track } from '@/lib/analytics';
 import { lungClarity, lungDays, lungsSince, lungUpdate } from '@/lib/lungs';
+import { moneyFor } from '@/lib/personal';
 import { money, moneySaved, yearlyCost } from '@/lib/plan';
 import { pickQuote } from '@/lib/quotes';
 import { getState, setState } from '@/lib/store';
@@ -233,7 +234,7 @@ export default function SOS() {
               <View style={{ flex: 1, gap: 2 }}>
                 <Caption style={styles.label}>{me.saved >= 1 ? 'Money you’ve kept' : 'Every day you skip it'}</Caption>
                 <Text style={styles.money}>{money(me.saved >= 1 ? me.saved : me.perDay)}</Text>
-                <Text style={styles.cardBody}>{me.saved >= 1 ? 'Not spent on it since you started.' : 'stays in your pocket.'}</Text>
+                <Text style={styles.cardBody}>{me.saved >= 1 ? (moneyFor(me.state.answers) ? `Kept since you started. That’s ${moneyFor(me.state.answers)}.` : 'Not spent on it since you started.') : 'stays in your pocket.'}</Text>
               </View>
             </Animated.View>
 

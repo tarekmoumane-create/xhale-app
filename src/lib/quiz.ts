@@ -1,8 +1,9 @@
 import type { Substance } from '@/constants/theme';
+import { MONEY_OPTIONS, WHEN_OPTIONS, WHO_OPTIONS } from '@/lib/personal';
 
 /**
- * The onboarding quiz is 6–9 slides depending on what they're quitting: questions, plus
- * reflection slides that mirror answers back.
+ * The onboarding quiz is 7–10 slides depending on what they're quitting: questions, reflection
+ * slides that mirror answers back, and three personal ones (when it hits, who it's for, the money).
  * - Nicotine: Heaviness of Smoking Index (time to first use + amount per day, 0–6),
  *   worded for vaping when needed (an adaptation for vapers).
  * - Weed: one frequency item (0–4): losing control once started (from CUDIT-R).
@@ -90,30 +91,10 @@ function nicotineWords(subs: Substance[]) {
   };
 }
 
-function thingFor(subs: Substance[]) {
-  const names = subs.map((s) => (s === 'cig' ? 'smoking' : s === 'vape' ? 'vaping' : 'weed'));
-  if (names.length === 1) return names[0];
-  return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
-}
-
 export function buildQuiz(subs: Substance[]): Slide[] {
   const nicotine = subs.includes('cig') || subs.includes('vape');
   const weed = subs.includes('weed');
   const w = nicotineWords(subs);
-  const habit = thingFor(subs);
-
-  const years: ChoiceSlide = {
-    kind: 'choice',
-    id: 'years',
-    eyebrow: 'Your story',
-    title: `How long has ${habit} been part of your life?`,
-    options: [
-      { label: 'Less than a year', points: 0 },
-      { label: '1 to 3 years', points: 1 },
-      { label: '3 to 10 years', points: 2 },
-      { label: 'More than 10 years', points: 3 },
-    ],
-  };
 
   const wake: ChoiceSlide = {
     kind: 'choice',
@@ -220,27 +201,36 @@ export function buildQuiz(subs: Substance[]): Slide[] {
     ],
   };
 
-  const triesReflect: ReflectionSlide = {
-    kind: 'reflection',
-    id: 'r_tries',
-    content: (a) =>
-      a.tries === 0
-        ? {
-            eyebrow: 'Good news',
-            title: 'Going in with a plan changes everything.',
-            body: 'Most people wing it. You’ll have a plan for your hardest moments before they happen.',
-          }
-        : {
-            eyebrow: 'Good news',
-            title: 'Those tries weren’t failures.',
-            body: 'Most people who quit needed more than one try. This time you’ll have a plan for where it gets hard.',
-          },
+  const when: MultiSlide = {
+    kind: 'multi',
+    id: 'when',
+    eyebrow: 'Your hardest moments',
+    title: 'When does it hit hardest?',
+    sub: 'Pick all that apply. Your plan starts here.',
+    options: WHEN_OPTIONS.map((o) => o.label),
   };
 
-  const slides: Slide[] = [years];
+  const who: MultiSlide = {
+    kind: 'multi',
+    id: 'who',
+    eyebrow: 'Who it’s for',
+    title: 'Who are you doing this for?',
+    sub: 'Pick all that apply. We’ll remind you when it gets hard.',
+    options: WHO_OPTIONS,
+  };
+
+  const moneyGoal: ChoiceSlide = {
+    kind: 'choice',
+    id: 'money',
+    eyebrow: 'The money you keep',
+    title: 'What will you do with the money you save?',
+    options: MONEY_OPTIONS.map((label) => ({ label, points: 0 })),
+  };
+
+  const slides: Slide[] = [];
   if (nicotine) slides.push(wake, amount, body);
   if (weed) slides.push(wStop);
-  slides.push(sounds, heard, tries, triesReflect);
+  slides.push(sounds, heard, tries, when, who, moneyGoal);
   return slides;
 }
 

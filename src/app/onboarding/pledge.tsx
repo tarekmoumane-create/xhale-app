@@ -6,6 +6,7 @@ import { SignaturePad } from '@/components/signature-pad';
 import { Button, Caption, Card, Enter, Eyebrow, LinkButton, Screen, StepHeader, Title } from '@/components/ui';
 import { Colors, Fonts } from '@/constants/theme';
 import { track } from '@/lib/analytics';
+import { whoMy } from '@/lib/personal';
 import { money, yearlyCost } from '@/lib/plan';
 import { setState, useStore } from '@/lib/store';
 
@@ -19,6 +20,8 @@ export default function Pledge() {
   const substances = useStore((s) => s.substances);
   const name = useStore((s) => s.name);
   const habits = useStore((s) => s.habits);
+  const answers = useStore((s) => s.answers);
+  const forWho = whoMy(answers);
   const cost = yearlyCost(habits, substances).total;
   const [points, setPoints] = useState(0);
   const [padKey, setPadKey] = useState(0);
@@ -52,6 +55,7 @@ export default function Pledge() {
           {cost > 0 ? (
             <Text style={styles.pledge}>It’s been costing me {money(cost)} a year, and more than just money.</Text>
           ) : null}
+          {forWho ? <Text style={styles.pledge}>I’m doing this for {forWho}.</Text> : null}
           <Text style={styles.pledge}>When a craving hits, I’ll ride it out. If I slip, I’ll get back on track the same day.</Text>
         </Card>
       </Enter>

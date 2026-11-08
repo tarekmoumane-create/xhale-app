@@ -10,6 +10,7 @@ import { COACH_ENABLED } from '@/constants/features';
 import { Colors, Fonts, SubstanceMeta, type Substance } from '@/constants/theme';
 import { useNow } from '@/hooks/use-now';
 import { cleanDays, dailyLimit, dayIndex, dayKey, MILESTONES, money, moneySaved, streakStart, usedToday } from '@/lib/plan';
+import { moneyFor } from '@/lib/personal';
 import { setState, useStore, type State } from '@/lib/store';
 
 const DAY = 86_400_000;
@@ -150,7 +151,7 @@ export default function Today() {
         </Enter>
 
         <Enter i={2} style={styles.stats}>
-          <Stat value={money(moneySaved(state, now))} label="saved" />
+          <Stat value={money(moneySaved(state, now))} label={moneyFor(state.answers) || 'saved'} />
           <View style={styles.statDivider} />
           <Stat value={String(state.cravings.length)} label="cravings faced" />
           <View style={styles.statDivider} />

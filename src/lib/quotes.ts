@@ -1,3 +1,4 @@
+import { whoYour } from '@/lib/personal';
 import type { State } from '@/lib/store';
 
 /**
@@ -46,6 +47,8 @@ const ANYONE = [
 /** The lines that fit this person, most personal first. */
 export function quotesFor(state: State): string[] {
   const out: string[] = [];
+  const who = whoYour(state.answers);
+  if (who) out.push(who === 'yourself' ? 'You’re doing this for you. That’s reason enough.' : `Do it for ${who}.`);
   const sounds = Array.isArray(state.answers.sounds) ? (state.answers.sounds as number[]) : [];
   sounds.forEach((i) => out.push(...(BY_SOUND[i] ?? [])));
   if (typeof state.answers.tries === 'number' && state.answers.tries >= 2) out.push(...MANY_TRIES);
