@@ -11,7 +11,6 @@ type NumKey = Exclude<keyof Habits, 'weedWhen'>;
 const ROWS: Record<Substance, { key: NumKey; label: string; step: number; min: number; fmt: (v: number) => string }[]> = {
   cig: [
     { key: 'cigPerDay', label: 'Cigarettes a day', step: 1, min: 1, fmt: String },
-    { key: 'packPrice', label: 'Price per pack', step: 1, min: 1, fmt: (v) => `$${v}` },
   ],
   vape: [
     { key: 'vapePuffsPerDay', label: 'Puffs a day, roughly', step: 10, min: 10, fmt: String },
@@ -23,6 +22,9 @@ const ROWS: Record<Substance, { key: NumKey; label: string; step: number; min: n
     { key: 'weedPerWeek', label: 'Spent a week', step: 5, min: 0, fmt: (v) => `$${v}` },
   ],
 };
+
+/** Tap a pack price instead of typing one. */
+const PACK_PRICES = [6, 8, 10, 12, 15, 20];
 
 const WHEN = ['First thing', 'After work', 'To fall asleep', 'When I’m bored', 'With friends', 'When stressed'];
 
@@ -43,8 +45,8 @@ export default function HabitsScreen() {
       header={<StepHeader progress={0.74} />}
       footer={<Button title="Calculate my cost" onPress={() => router.push('/onboarding/plan')} />}>
       <Enter i={0} style={{ gap: 10 }}>
-        <Title>What does a normal week look like?</Title>
-        <Body>Rough is fine.</Body>
+        <Title>What does a normal day look like?</Title>
+        <Body>Rough is fine. No need to be exact.</Body>
       </Enter>
       {substances.map((s, i) => {
         const m = SubstanceMeta[s];
@@ -68,6 +70,22 @@ export default function HabitsScreen() {
                   />
                 </View>
               ))}
+              {s === 'cig' ? (
+                <View style={{ gap: 10, paddingTop: 6 }}>
+                  <Text style={styles.stepLabel}>What does a pack cost?</Text>
+                  <View style={ui.wrapRow}>
+                    {PACK_PRICES.map((p) => (
+                      <Chip
+                        key={p}
+                        label={p === 20 ? '$20+' : `$${p}`}
+                        color={m.color}
+                        selected={habits.packPrice === p}
+                        onPress={() => set('packPrice', p)}
+                      />
+                    ))}
+                  </View>
+                </View>
+              ) : null}
               {s === 'weed' ? (
                 <View style={{ gap: 10, paddingTop: 10 }}>
                   <Text style={styles.stepLabel}>When do you usually smoke?</Text>
