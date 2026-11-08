@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { SignaturePad } from '@/components/signature-pad';
 import { Button, Caption, Card, Enter, Eyebrow, LinkButton, Screen, StepHeader, Title } from '@/components/ui';
@@ -17,7 +17,6 @@ function habitList(subs: string[]) {
 
 export default function Pledge() {
   const substances = useStore((s) => s.substances);
-  const why = useStore((s) => s.why);
   const name = useStore((s) => s.name);
   const habits = useStore((s) => s.habits);
   const cost = yearlyCost(habits, substances).total;
@@ -54,18 +53,6 @@ export default function Pledge() {
             <Text style={styles.pledge}>It’s been costing me {money(cost)} a year, and more than just money.</Text>
           ) : null}
           <Text style={styles.pledge}>When a craving hits, I’ll ride it out. If I slip, I’ll get back on track the same day.</Text>
-          <View style={styles.whyBox}>
-            <Eyebrow>My why</Eyebrow>
-            <TextInput
-              value={why}
-              onChangeText={(t) => setState({ why: t })}
-              placeholder="I want to stop because…"
-              placeholderTextColor={Colors.text3}
-              style={styles.whyInput}
-              maxLength={160}
-              accessibilityLabel="Why you're quitting"
-            />
-          </View>
         </Card>
       </Enter>
 
@@ -90,7 +77,5 @@ export default function Pledge() {
 
 const styles = StyleSheet.create({
   pledge: { fontFamily: Fonts.semi, fontSize: 20, lineHeight: 28, color: Colors.text },
-  whyBox: { gap: 4, paddingTop: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: Colors.borderStrong },
-  whyInput: { fontFamily: Fonts.italic, fontSize: 20, color: Colors.accent, paddingVertical: 6 },
   signHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 40 },
 });

@@ -17,7 +17,7 @@
     "android": {
       "package": "com.tarekmoumane.xhale",
       "adaptiveIcon": {
-        "backgroundColor": "#0A0B0D",
+        "backgroundColor": "#F2F4F5",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png"
       },
@@ -45,7 +45,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0A0B0D",
+          "backgroundColor": "#F2F4F5",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 180
         }

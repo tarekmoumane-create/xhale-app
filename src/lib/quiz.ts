@@ -1,8 +1,8 @@
 import type { Substance } from '@/constants/theme';
 
 /**
- * The onboarding quiz is 7–10 slides depending on what they're quitting: questions, plus
- * reflection slides that mirror answers back, and an open question asking why they want to stop.
+ * The onboarding quiz is 6–9 slides depending on what they're quitting: questions, plus
+ * reflection slides that mirror answers back.
  * - Nicotine: Heaviness of Smoking Index (time to first use + amount per day, 0–6),
  *   worded for vaping when needed (an adaptation for vapers).
  * - Weed: one frequency item (0–4): losing control once started (from CUDIT-R).
@@ -96,7 +96,7 @@ function thingFor(subs: Substance[]) {
   return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
 }
 
-export function buildQuiz(subs: Substance[], name = ''): Slide[] {
+export function buildQuiz(subs: Substance[]): Slide[] {
   const nicotine = subs.includes('cig') || subs.includes('vape');
   const weed = subs.includes('weed');
   const w = nicotineWords(subs);
@@ -237,20 +237,10 @@ export function buildQuiz(subs: Substance[], name = ''): Slide[] {
           },
   };
 
-  const why: TextSlide = {
-    kind: 'text',
-    id: 'why',
-    eyebrow: 'Your why',
-    title: name ? `${name}, why do you want to stop?` : 'Why do you want to stop?',
-    sub: 'In your own words. We’ll show you this every morning when you make your pledge.',
-    placeholder: 'I want to stop because…',
-    suggestions: WHY_SUGGESTIONS,
-  };
-
   const slides: Slide[] = [years];
   if (nicotine) slides.push(wake, amount, body);
   if (weed) slides.push(wStop);
-  slides.push(sounds, heard, tries, triesReflect, why);
+  slides.push(sounds, heard, tries, triesReflect);
   return slides;
 }
 

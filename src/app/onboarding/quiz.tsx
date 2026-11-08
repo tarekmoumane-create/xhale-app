@@ -15,8 +15,7 @@ export default function Quiz() {
   const substances = useStore((s) => s.substances);
   const answers = useStore((s) => s.answers);
   const why = useStore((s) => s.why);
-  const name = useStore((s) => s.name);
-  const slides = useMemo(() => buildQuiz(substances, name), [substances, name]);
+  const slides = useMemo(() => buildQuiz(substances), [substances]);
   const [i, setI] = useState(0);
   const slide = slides[i];
 
