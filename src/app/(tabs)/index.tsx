@@ -3,6 +3,7 @@ import { Link, router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { CravingButton } from '@/components/craving-button';
+import { Tour } from '@/components/tour';
 import { Caption, Card, Enter, Eyebrow, Icon, Screen, Tap, Title } from '@/components/ui';
 import { LungCard } from '@/components/lungs';
 import { LiveTimer, Rings, type Ring } from '@/components/visuals';
@@ -214,6 +215,7 @@ export default function Today() {
         </Enter>
       </Screen>
       <CravingButton />
+      <Tour />
     </View>
   );
 }

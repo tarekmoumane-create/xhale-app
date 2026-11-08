@@ -95,9 +95,9 @@ function ScoreCard({ s }: { s: ScoreResult }) {
         ))}
       </View>
       <View style={styles.between}>
-        <Caption>Low</Caption>
+        <Caption>Mild</Caption>
         <Caption>Moderate</Caption>
-        <Caption>High</Caption>
+        <Caption>Severe</Caption>
       </View>
       <Body style={{ color: Colors.text }}>{s.meaning}</Body>
       <View style={styles.notAlone}>

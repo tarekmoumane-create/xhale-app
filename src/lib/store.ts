@@ -39,6 +39,8 @@ export type State = {
   onboarded: boolean;
   pro: boolean;
   offerSeen: boolean;
+  /** The buddy's first-run tour of Today has been shown. */
+  tourSeen: boolean;
   logs: UseLog[];
   slips: Slip[];
   cravings: Craving[];
@@ -76,6 +78,7 @@ export const initialState: State = {
   onboarded: false,
   pro: false,
   offerSeen: false,
+  tourSeen: false,
   logs: [],
   slips: [],
   cravings: [],

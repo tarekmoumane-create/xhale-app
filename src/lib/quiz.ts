@@ -239,7 +239,7 @@ export function buildQuiz(subs: Substance[]): Slide[] {
 export type ScoreResult = {
   key: 'nicotine' | 'weed';
   label: string;
-  level: 'Low' | 'Moderate' | 'High';
+  level: 'Mild' | 'Moderate' | 'Severe';
   segment: 0 | 1 | 2;
   meaning: string;
   notAlone: string;
@@ -250,18 +250,25 @@ function num(a: Answers, id: string) {
   return typeof v === 'number' ? v : 0;
 }
 
+/**
+ * Scoring leans sensitive on purpose: it's a nudge to take this seriously, not a diagnosis.
+ * Picking 3+ "sounds like you" signs bumps the result up one level.
+ */
 export function scoreAnswers(subs: Substance[], a: Answers): ScoreResult[] {
   const out: ScoreResult[] = [];
+  const signs = Array.isArray(a.sounds) ? a.sounds.length : 0;
+  const bump = (seg: number) => Math.min(2, seg + (signs >= 3 ? 1 : 0)) as 0 | 1 | 2;
+  const LEVELS = ['Mild', 'Moderate', 'Severe'] as const;
   if (subs.includes('cig') || subs.includes('vape')) {
     const wakePts = [3, 2, 1, 0][num(a, 'n_wake')] ?? 0;
     const n = typeof a.n_amount === 'number' ? a.n_amount : 12;
-    const amountPts = n <= 10 ? 0 : n <= 20 ? 1 : n <= 30 ? 2 : 3;
+    const amountPts = n <= 5 ? 0 : n <= 12 ? 1 : n <= 20 ? 2 : 3;
     const hsi = wakePts + amountPts;
-    const segment = hsi <= 1 ? 0 : hsi <= 4 ? 1 : 2;
+    const segment = bump(hsi <= 1 ? 0 : hsi <= 2 ? 1 : 2);
     out.push({
       key: 'nicotine',
       label: 'Nicotine dependence',
-      level: (['Low', 'Moderate', 'High'] as const)[segment],
+      level: LEVELS[segment],
       segment,
       meaning: [
         'Your body isn’t hooked hard. The fight is mostly habit and routine, which is exactly what your plan targets.',
@@ -273,11 +280,11 @@ export function scoreAnswers(subs: Substance[], a: Answers): ScoreResult[] {
   }
   if (subs.includes('weed')) {
     const score = num(a, 'w_stop');
-    const segment = score <= 0 ? 0 : score <= 2 ? 1 : 2;
+    const segment = bump(score <= 0 ? 0 : score <= 1 ? 1 : 2);
     out.push({
       key: 'weed',
       label: 'Weed use',
-      level: (['Low', 'Moderate', 'High'] as const)[segment],
+      level: LEVELS[segment],
       segment,
       meaning: [
         'Your answers don’t show a problem pattern yet. Stopping now is the easiest it will ever be.',

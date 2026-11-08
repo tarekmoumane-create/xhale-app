@@ -7,6 +7,7 @@ import { useDerivedValue, useReducedMotion, type SharedValue } from 'react-nativ
  * Soft, billowing smoke drawn on the GPU over whatever is behind it.
  * - `density` 0..1: smoke rises from the bottom and fills the screen.
  * - `clear` 0..1: the smoke thins and breaks apart until it's gone.
+ * - `light`: pale mist for white screens instead of grey smoke for dark ones.
  * Purely visual; the screen using it decides how density and clear change.
  */
 const SMOKE = Skia.RuntimeEffect.Make(`
@@ -14,6 +15,7 @@ uniform float2 res;
 uniform float t;
 uniform float density;
 uniform float clear;
+uniform float light;
 
 float hash(float2 p) { return fract(sin(dot(p, float2(127.1, 311.7))) * 43758.5453); }
 float noise(float2 p) {
@@ -57,6 +59,8 @@ half4 main(float2 xy) {
   a *= hole * (1.0 - clear * clear * 0.6);
 
   float3 col = mix(float3(0.58, 0.59, 0.61), float3(0.86, 0.86, 0.87), smoothstep(0.3, 0.8, n));
+  // Light mode: soft, pale mist for white screens.
+  col = mix(col, mix(float3(0.80, 0.82, 0.83), float3(0.95, 0.96, 0.96), smoothstep(0.3, 0.8, n)), light);
   return half4(half3(col * a), half(a));
 }
 `)!;
@@ -64,10 +68,12 @@ half4 main(float2 xy) {
 export function Smoke({
   density,
   clear,
+  light = false,
   style,
 }: {
   density: SharedValue<number>;
   clear: SharedValue<number>;
+  light?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
   const [size, setSize] = useState({ w: 1, h: 1 });
@@ -79,6 +85,7 @@ export function Smoke({
     t: still ? 0 : clock.value / 1000,
     density: density.value,
     clear: clear.value,
+    light: light ? 1 : 0,
   }));
 
   return (
