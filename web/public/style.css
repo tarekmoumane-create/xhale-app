@@ -7,6 +7,9 @@
   --accent: #7fe7dc;
   --rule: rgba(255, 255, 255, 0.1);
 }
+@media (prefers-color-scheme: light) {
+  :root { --bg: #f2f4f5; --surface: #ffffff; --text: #0a0b0d; --text2: #4a5056; --text3: #6b7177; --accent: #0c7a70; --rule: rgba(10,11,13,.1); }
+}
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {

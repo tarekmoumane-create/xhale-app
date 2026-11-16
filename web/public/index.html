@@ -2,18 +2,418 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Xhale</title>
-<meta name="description" content="Quit smoking, vaping or weed. No lectures. No shame.">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;600&family=Schibsted+Grotesk:wght@700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Xhale: Quit Smoking, Vaping and Weed</title>
+<meta name="description" content="Quit smoking, vaping or weed with a plan built around your habits, and help in the exact minute a craving hits. No lectures. No shame.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0a0b0d" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f2f4f5" media="(prefers-color-scheme: light)">
+<meta name="apple-itunes-app" content="app-id=6816223846">
+<meta property="og:title" content="Xhale: Breathe out. For good.">
+<meta property="og:description" content="Quit smoking, vaping or weed. No lectures. No shame.">
+<meta property="og:image" content="https://xhale.vercel.app/img/icon.png">
+<meta property="og:url" content="https://xhale.vercel.app/">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600&family=Schibsted+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0b0d; --surface: #131519; --surface2: #1b1e23;
+  --text: #f5f3ef; --text2: #a4a9ae; --text3: #7a8086;
+  --mint: #7fe7dc; --mint-soft: rgba(127,231,220,.12); --on-mint: #04201d;
+  --ink: #0b2e2a; --cheek: rgba(255,128,110,.38);
+  --border: rgba(255,255,255,.08);
+  --accent: #7fe7dc;
+  --header-bg: rgba(10,11,13,.82); --dock-bg: rgba(27,30,35,.92); --dock-shadow: rgba(0,0,0,.5);
+  --store-shadow: rgba(127,231,220,.55); --glow: rgba(127,231,220,.16);
+  --smoke: 200,206,212; --smoke-a: .16; --fog: 185,190,196;
+  --cig: #ff9254; --vape: #7aa8ff; --weed: #a6e07a;
+  --display: 'Schibsted Grotesk', system-ui, sans-serif;
+  --body: 'Familjen Grotesk', system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--text2); font: 400 17px/1.55 var(--body); overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+img { display: block; max-width: 100%; }
+a { color: var(--accent); }
+h1, h2, h3 { font-family: var(--display); color: var(--text); letter-spacing: -0.025em; margin: 0; }
+p { margin: 0; }
+.wrap { width: 100%; max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+/* Light version: follows the phone's light mode setting */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f2f4f5; --surface: #ffffff; --surface2: #dfe4e6;
+    --text: #0a0b0d; --text2: #4a5056; --text3: #6b7177;
+    --mint-soft: rgba(127,231,220,.3);
+    --border: rgba(10,11,13,.08);
+    --accent: #0c7a70;
+    --header-bg: rgba(242,244,245,.85); --dock-bg: rgba(255,255,255,.94); --dock-shadow: rgba(20,30,40,.16);
+    --store-shadow: rgba(60,190,175,.5); --glow: rgba(127,231,220,.38);
+    --smoke: 120,128,136; --smoke-a: .2; --fog: 160,166,172;
+    --cig: #c4511b; --vape: #2f63d1; --weed: #3d8a1d;
+  }
+  .card, .breathe { box-shadow: 0 2px 14px rgba(20,30,40,.05); }
+}
+
+/* Header */
+.top { position: sticky; top: 0; z-index: 20; background: var(--header-bg); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); padding-top: env(safe-area-inset-top); }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; height: 56px; }
+.brand { display: flex; align-items: center; gap: 8px; font: 800 21px/1 var(--display); color: var(--text); text-decoration: none; letter-spacing: -0.03em; }
+.brand svg { width: 26px; height: 26px; }
+.pill { font: 600 14px/1 var(--body); color: var(--on-mint); background: var(--mint); padding: 10px 14px; border-radius: 999px; text-decoration: none; }
+
+/* App Store button */
+.store { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; max-width: 360px; min-height: 64px; padding: 12px 22px; border-radius: 18px; background: var(--mint); color: var(--on-mint); text-decoration: none; box-shadow: 0 10px 40px -10px var(--store-shadow); transition: transform .15s ease; -webkit-tap-highlight-color: transparent; }
+.store:active { transform: scale(.97); }
+.store svg { width: 28px; height: 28px; flex: none; }
+.store span { display: flex; flex-direction: column; text-align: left; line-height: 1.1; }
+.store small { font: 500 12px/1.2 var(--body); opacity: .8; }
+.store b { font: 800 21px/1.15 var(--display); letter-spacing: -0.02em; }
+.store-note { margin-top: 12px; font-size: 14px; color: var(--text3); }
+
+/* Hero */
+.hero { position: relative; padding: 28px 0 56px; text-align: center; overflow: hidden; }
+.hero .wrap { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
+.eyebrow { display: inline-flex; gap: 6px; align-items: center; font: 500 14px/1 var(--body); color: var(--accent); background: var(--mint-soft); padding: 8px 12px; border-radius: 999px; }
+.hero h1 { font-weight: 800; font-size: clamp(46px, 13vw, 84px); line-height: .98; margin: 18px 0 14px; }
+.hero h1 em { font-style: normal; color: var(--accent); }
+.lede { font-size: 18px; max-width: 30ch; margin: 0 auto 26px; }
+.hero-buddy { width: min(62vw, 260px); margin: 6px auto 22px; position: relative; }
+
+/* Mascot */
+.buddy { display: block; width: 100%; height: auto; overflow: visible; }
+.buddy .body { transform-origin: 100px 100px; animation: bob 2.4s ease-in-out infinite alternate; }
+.buddy .eyes-open { transform-origin: 100px 88px; animation: blink 5s infinite; }
+.buddy .eyes-closed, .buddy .mouth-o, .buddy .mouth-happy, .buddy .mouth-in, .buddy .eyes-happy { display: none; }
+.buddy[data-mood="in"] .eyes-open, .buddy[data-mood="out"] .eyes-open, .buddy[data-mood="happy"] .eyes-open { display: none; }
+.buddy[data-mood="in"] .eyes-closed, .buddy[data-mood="out"] .eyes-closed { display: inline; }
+.buddy[data-mood="happy"] .eyes-happy { display: inline; }
+.buddy[data-mood="in"] .mouth-smile, .buddy[data-mood="out"] .mouth-smile, .buddy[data-mood="happy"] .mouth-smile { display: none; }
+.buddy[data-mood="in"] .mouth-in { display: inline; }
+.buddy[data-mood="out"] .mouth-o { display: inline; }
+.buddy[data-mood="happy"] .mouth-happy { display: inline; }
+@keyframes bob { from { transform: translateY(-3px); } to { transform: translateY(3px); } }
+@keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+
+/* Drifting smoke behind the hero */
+.smoke { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.smoke i { position: absolute; border-radius: 50%; background: radial-gradient(circle, rgba(var(--smoke),var(--smoke-a)), rgba(var(--smoke),0) 70%); filter: blur(8px); animation: drift 14s ease-in-out infinite; }
+.smoke i:nth-child(1) { width: 320px; height: 320px; left: -120px; top: 40px; }
+.smoke i:nth-child(2) { width: 260px; height: 260px; right: -90px; top: 180px; animation-delay: -5s; animation-duration: 17s; }
+.smoke i:nth-child(3) { width: 380px; height: 380px; left: 30%; bottom: -200px; animation-delay: -9s; animation-duration: 20s; }
+@keyframes drift { 0%, 100% { transform: translate(0, 0) scale(1); opacity: .9; } 50% { transform: translate(30px, -40px) scale(1.15); opacity: .5; } }
+.glow { position: absolute; left: 50%; top: 52%; width: 520px; height: 520px; transform: translate(-50%, -50%); background: radial-gradient(circle, var(--glow), transparent 65%); z-index: 1; pointer-events: none; }
+
+/* Habits strip */
+.habits { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 26px; }
+.habits span { font: 500 14px/1 var(--body); color: var(--text); background: var(--surface); border: 1px solid var(--border); padding: 9px 13px; border-radius: 999px; }
+.habits .c { color: var(--cig); } .habits .v { color: var(--vape); } .habits .w { color: var(--weed); }
+
+section { padding: 56px 0; }
+.sec-head { text-align: center; margin-bottom: 26px; }
+.sec-head h2 { font-size: clamp(32px, 8.5vw, 52px); line-height: 1.02; }
+.sec-head p { margin: 12px auto 0; max-width: 34ch; }
+
+/* Breathe demo */
+.try { padding-top: 24px; }
+.breathe { position: relative; max-width: 440px; margin: 0 auto; border-radius: 30px; background: var(--surface); border: 1px solid var(--border); overflow: hidden; padding: 30px 20px 26px; text-align: center; }
+.breathe .stage { position: relative; width: 210px; height: 210px; margin: 0 auto; }
+.breathe .stage .scale { width: 100%; height: 100%; transition: transform 4s cubic-bezier(.45,0,.55,1); }
+.breathe.is-in .stage .scale { transform: scale(1.16); }
+.breathe.is-out .stage .scale { transition-duration: 5.5s; transform: scale(.94); }
+.fog { position: absolute; inset: -10%; pointer-events: none; transition: opacity 1.4s ease; z-index: 3; }
+.fog i { position: absolute; border-radius: 50%; background: radial-gradient(circle, rgba(var(--fog),1), rgba(var(--fog),.55) 40%, rgba(var(--fog),0) 70%); filter: blur(4px); animation: drift 9s ease-in-out infinite; }
+.fog i:nth-child(1) { width: 70%; height: 60%; left: -6%; top: 6%; }
+.fog i:nth-child(2) { width: 70%; height: 66%; right: -8%; top: 22%; animation-delay: -3s; }
+.fog i:nth-child(3) { width: 80%; height: 60%; left: 12%; bottom: -6%; animation-delay: -6s; }
+.fog i:nth-child(4) { width: 50%; height: 44%; left: 30%; top: -4%; animation-delay: -2s; }
+.fog i:nth-child(5) { width: 64%; height: 56%; left: 18%; top: 26%; animation-delay: -4s; }
+.breathe-label { position: relative; z-index: 4; font: 800 26px/1.1 var(--display); color: var(--text); margin-top: 18px; min-height: 30px; letter-spacing: -0.02em; }
+.breathe-sub { position: relative; z-index: 4; font-size: 15px; color: var(--text2); margin-top: 8px; min-height: 46px; }
+.dots { display: flex; gap: 8px; justify-content: center; margin-top: 14px; position: relative; z-index: 4; }
+.dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--surface2); transition: background .3s; }
+.dots i.on { background: var(--accent); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 26px; border-radius: 999px; border: 0; font: 600 17px/1 var(--body); cursor: pointer; text-decoration: none; -webkit-tap-highlight-color: transparent; }
+.btn-light { background: var(--text); color: var(--bg); }
+.btn-mint { background: var(--mint); color: var(--on-mint); }
+.breathe .btn { margin-top: 18px; position: relative; z-index: 4; }
+.breathe .done { display: none; margin-top: 18px; position: relative; z-index: 4; }
+.breathe.is-done .done { display: block; }
+.breathe.is-done #breatheBtn { display: none; }
+.breathe .done .store { margin: 0 auto; }
+
+
+/* Feature cards */
+.cards { display: grid; gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 22px; display: flex; gap: 16px; align-items: flex-start; }
+.card .ic { flex: none; width: 46px; height: 46px; border-radius: 14px; background: var(--mint-soft); display: grid; place-items: center; }
+.card .ic svg { width: 24px; height: 24px; stroke: var(--accent); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.card h3 { font-size: 21px; line-height: 1.2; margin-bottom: 5px; }
+.card p { font-size: 16px; }
+
+
+/* Final CTA */
+.final { text-align: center; padding-bottom: 40px; }
+.final .buddy-wrap { width: 170px; margin: 0 auto 18px; }
+.final h2 { font-size: clamp(38px, 11vw, 64px); line-height: 1; margin-bottom: 14px; }
+.final p { margin: 0 auto 26px; max-width: 30ch; }
+.final .store { margin: 0 auto; }
+
+footer { border-top: 1px solid var(--border); padding: 26px 0 calc(110px + env(safe-area-inset-bottom)); font-size: 15px; }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 18px 22px; align-items: center; }
+footer a { color: var(--text2); text-decoration: none; }
+footer .copy { width: 100%; color: var(--text3); font-size: 13px; }
+
+/* Sticky download bar (phones) */
+.dock { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 30; display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 12px; border-radius: 22px; background: var(--dock-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--border); box-shadow: 0 16px 40px var(--dock-shadow); transform: translateY(140%); transition: transform .35s cubic-bezier(.2,.8,.2,1); }
+.dock.show { transform: none; }
+.dock img { width: 44px; height: 44px; border-radius: 11px; }
+.dock .t { flex: 1; min-width: 0; line-height: 1.2; }
+.dock .t b { display: block; color: var(--text); font: 700 16px/1.2 var(--display); }
+.dock .t small { font-size: 13px; color: var(--text3); }
+.dock .btn { min-height: 44px; padding: 0 18px; font-size: 16px; }
+
+/* Bigger screens */
+@media (min-width: 820px) {
+  .hero { padding: 64px 0 80px; text-align: left; }
+  .hero .wrap { display: grid; grid-template-columns: 1.1fr .9fr; align-items: center; gap: 40px; }
+  .hero .copy { display: flex; flex-direction: column; align-items: flex-start; }
+  .hero .lede { margin-left: 0; }
+  .hero-buddy { width: 340px; order: 2; }
+  .habits { justify-content: flex-start; }
+  .cards { grid-template-columns: 1fr 1fr; }
+  .dock { display: none; }
+  footer { padding-bottom: 40px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
+}
+</style>
 </head>
 <body>
+
+<!-- Reusable mascot: the same buddy drawn in the app -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="buddy-art">
+      <path d="M100 8 C153 5 194 46 192 101 C190 153 150 194 98 192 C46 190 6 151 8 98 C10 47 48 11 100 8 Z" fill="#7FE7DC"/>
+      <ellipse cx="70" cy="48" rx="26" ry="14" fill="rgba(255,255,255,0.28)" transform="rotate(-24 70 48)"/>
+      <circle cx="56" cy="112" r="11" fill="rgba(255,128,110,0.38)"/>
+      <circle cx="144" cy="112" r="11" fill="rgba(255,128,110,0.38)"/>
+    </g>
+  </defs>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="Xhale home">
+      <svg viewBox="0 0 200 200" aria-hidden="true"><use href="#buddy-art"/><g fill="#0B2E2A"><ellipse cx="72" cy="88" rx="7" ry="10"/><ellipse cx="128" cy="88" rx="7" ry="10"/></g><path d="M82 112 Q100 128 118 112" stroke="#0B2E2A" stroke-width="7" stroke-linecap="round" fill="none"/></svg>
+      xhale
+    </a>
+    <a class="pill" href="/get" data-src="header">Get the app</a>
+  </div>
+</header>
+
 <main>
-<a class="brand" href="/">xhale</a>
-<h1>Breathe out.<br>For good.</h1>
-<p class="lede">Quit smoking, vaping or weed with a plan built around your habits. No lectures. No shame.</p>
-<p>Xhale is in beta on iPhone.</p>
-<footer><a href="/">Home</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="mailto:tarekmoumane@gmail.com">Contact</a></footer>
+  <section class="hero">
+    <div class="smoke" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="glow" aria-hidden="true"></div>
+    <div class="wrap">
+      <div class="hero-buddy" aria-hidden="true">
+        <svg class="buddy" data-mood="hello" viewBox="0 0 200 200">
+          <g class="body">
+            <use href="#buddy-art"/>
+            <g class="eyes-open" fill="#0B2E2A"><ellipse cx="72" cy="88" rx="6" ry="8"/><ellipse cx="128" cy="88" rx="6" ry="8"/></g>
+            <path class="mouth-smile" d="M82 112 Q100 128 118 112" stroke="#0B2E2A" stroke-width="5" stroke-linecap="round" fill="none"/>
+          </g>
+        </svg>
+      </div>
+      <div class="copy">
+        <span class="eyebrow">For cigarettes, vapes and weed</span>
+        <h1>Breathe out.<br><em>For good.</em></h1>
+        <p class="lede">A quit plan built around your habits, and help in the exact minute a craving hits. No lectures. No shame.</p>
+        <a class="store" id="heroStore" href="/get" data-src="hero">
+          <svg viewBox="0 0 384 512" fill="currentColor" aria-hidden="true"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+          <span><small>Download on the</small><b>App Store</b></span>
+        </a>
+        <p class="store-note" id="storeNote">iPhone app</p>
+        <div class="habits" aria-label="Works for">
+          <span class="c">Cigarettes</span><span class="v">Vaping</span><span class="w">Weed</span><span>Or all three</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="try" id="try">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>Craving right now?</h2>
+        <p>Breathe with Xhale. Three slow breaths and the smoke clears. This is what the app does when it hits.</p>
+      </div>
+      <div class="breathe" id="breathe">
+        <div class="stage">
+          <div class="scale">
+            <svg class="buddy" id="breatheBuddy" data-mood="hello" viewBox="0 0 200 200" aria-hidden="true">
+              <g class="body">
+                <use href="#buddy-art"/>
+                <g class="eyes-open" fill="#0B2E2A"><ellipse cx="72" cy="88" rx="6" ry="8"/><ellipse cx="128" cy="88" rx="6" ry="8"/></g>
+                <g class="eyes-closed" stroke="#0B2E2A" stroke-width="5" stroke-linecap="round" fill="none"><path d="M60 88 Q72 97 84 88"/><path d="M116 88 Q128 97 140 88"/></g>
+                <g class="eyes-happy" stroke="#0B2E2A" stroke-width="5" stroke-linecap="round" fill="none"><path d="M60 92 Q72 78 84 92"/><path d="M116 92 Q128 78 140 92"/></g>
+                <path class="mouth-smile" d="M82 112 Q100 128 118 112" stroke="#0B2E2A" stroke-width="5" stroke-linecap="round" fill="none"/>
+                <path class="mouth-in" d="M88 116 Q100 124 112 116" stroke="#0B2E2A" stroke-width="5" stroke-linecap="round" fill="none"/>
+                <ellipse class="mouth-o" cx="100" cy="118" rx="8" ry="10" fill="#0B2E2A"/>
+                <path class="mouth-happy" d="M76 110 Q100 138 124 110 Z" fill="#0B2E2A"/>
+              </g>
+            </svg>
+          </div>
+          <div class="fog" id="fog" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <p class="breathe-label" id="breatheLabel" aria-live="polite">Ready when you are</p>
+        <p class="breathe-sub" id="breatheSub">In for 4, out for 6. Each breath clears a third of the smoke.</p>
+        <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+        <button class="btn btn-light" id="breatheBtn" type="button">Start breathing</button>
+        <div class="done">
+          <a class="store" href="/get" data-src="breathe">
+            <svg viewBox="0 0 384 512" fill="currentColor" aria-hidden="true"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+            <span><small>Keep Xhale in your pocket</small><b>Get it on iPhone</b></span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>Quitting, without the willpower speech</h2>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 8h10a3 3 0 1 0-3-3"/><path d="M3 12h15a3 3 0 1 1-3 3"/><path d="M3 16h7"/></svg></div>
+          <div><h3>Ride out every craving</h3><p>Tap one button when it hits. A craving passes in minutes, and you won't face it alone.</p></div>
+        </div>
+        <div class="card">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 15l4-4 3 3 5-6"/></svg></div>
+          <div><h3>A plan that fits your habit</h3><p>Taper down or stop today. Your plan is built from how much you use and when.</p></div>
+        </div>
+        <div class="card">
+          <div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10"/><path d="M15 9.5c0-1.4-1.3-2.5-3-2.5s-3 1-3 2.4c0 3.2 6 1.8 6 5 0 1.4-1.3 2.6-3 2.6s-3-1.1-3-2.5"/></svg></div>
+          <div><h3>See the money stack up</h3><p>Every day you skip it, the cash stays in your pocket. Xhale counts it for you.</p></div>
+        </div>
+        <div class="card">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></svg></div>
+          <div><h3>A slip isn't a relapse</h3><p>Log it, learn what set it off, keep going. Your clean days still count.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="final" id="final">
+    <div class="wrap">
+      <div class="buddy-wrap" aria-hidden="true">
+        <svg class="buddy" data-mood="happy" viewBox="0 0 200 200">
+          <g class="body">
+            <use href="#buddy-art"/>
+            <g class="eyes-happy" stroke="#0B2E2A" stroke-width="5" stroke-linecap="round" fill="none"><path d="M60 92 Q72 78 84 92"/><path d="M116 92 Q128 78 140 92"/></g>
+            <path class="mouth-happy" d="M76 110 Q100 138 124 110 Z" fill="#0B2E2A"/>
+          </g>
+        </svg>
+      </div>
+      <h2>Your last one<br>can be today.</h2>
+      <p>Download Xhale and get a plan in a few minutes.</p>
+      <a class="store" id="finalStore" href="/get" data-src="final">
+        <svg viewBox="0 0 384 512" fill="currentColor" aria-hidden="true"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+        <span><small>Download on the</small><b>App Store</b></span>
+      </a>
+    </div>
+  </section>
 </main>
+
+<footer>
+  <div class="wrap">
+    <a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="mailto:tarekmoumane@gmail.com">Contact</a>
+    <p class="copy">Xhale is a wellness app, not medical advice. Talk to a doctor about nicotine replacement or withdrawal.</p>
+  </div>
+</footer>
+
+<div class="dock" id="dock" aria-hidden="true">
+  <img src="/img/icon.png" alt="">
+  <div class="t"><b>Xhale</b><small>Quit smoking, vaping and weed</small></div>
+  <a class="btn btn-mint" href="/get" data-src="dock" tabindex="-1">Get</a>
+</div>
+
+<script>
+(function () {
+  var APP = 'https://apps.apple.com/app/id6816223846';
+  // Point every download button straight at the App Store listing.
+  document.querySelectorAll('[data-src]').forEach(function (a) { a.href = APP; });
+
+  // Android visitors: say it's iPhone only for now.
+  if (/android/i.test(navigator.userAgent)) {
+    var n = document.getElementById('storeNote');
+    if (n) n.textContent = 'Only on iPhone for now.';
+  }
+
+  // Sticky download bar: shows once the hero button scrolls away, hides at the final button.
+  var dock = document.getElementById('dock');
+  var heroVisible = true, finalVisible = false;
+  function sync() {
+    var on = !heroVisible && !finalVisible;
+    dock.classList.toggle('show', on);
+    dock.setAttribute('aria-hidden', on ? 'false' : 'true');
+    dock.querySelector('a').tabIndex = on ? 0 : -1;
+  }
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (e) { heroVisible = e[0].isIntersecting; sync(); }).observe(document.getElementById('heroStore'));
+    new IntersectionObserver(function (e) { finalVisible = e[0].isIntersecting; sync(); }).observe(document.getElementById('finalStore'));
+  }
+
+  // Breathing demo: three breaths, each clears a third of the smoke.
+  var box = document.getElementById('breathe');
+  var buddy = document.getElementById('breatheBuddy');
+  var fog = document.getElementById('fog');
+  var label = document.getElementById('breatheLabel');
+  var sub = document.getElementById('breatheSub');
+  var dots = box.querySelectorAll('.dots i');
+  var btn = document.getElementById('breatheBtn');
+  var IN = 4000, OUT = 5500, running = false;
+
+  function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function phase(cls, mood, text, note) {
+    box.classList.remove('is-in', 'is-out');
+    if (cls) box.classList.add(cls);
+    buddy.setAttribute('data-mood', mood);
+    label.textContent = text;
+    if (note !== undefined) sub.textContent = note;
+  }
+  async function run() {
+    if (running) return;
+    running = true;
+    btn.disabled = true; btn.style.opacity = .5;
+    box.classList.remove('is-done');
+    fog.style.opacity = 1;
+    dots.forEach(function (d) { d.classList.remove('on'); });
+    for (var i = 0; i < 3; i++) {
+      phase('is-in', 'in', 'Breathe in', 'Slowly, through your nose.');
+      await wait(IN);
+      phase('is-out', 'out', 'Breathe out', 'Let it all go.');
+      fog.style.opacity = String(1 - (i + 1) / 3);
+      dots[i].classList.add('on');
+      await wait(OUT);
+    }
+    phase('', 'happy', 'Smoke cleared.', 'The craving passes. Xhale does this with you every time it hits.');
+    box.classList.add('is-done');
+    btn.disabled = false; btn.style.opacity = 1;
+    running = false;
+  }
+  btn.addEventListener('click', run);
+  buddy.parentNode.addEventListener('click', run);
+})();
+</script>
 </body>
 </html>
